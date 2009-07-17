@@ -2,8 +2,9 @@ OCAMLBUILD = ocamlbuild
 
 main: 
 	ocamlbuild -lib unix cb.native; \
-	mv _build/src/main/cb.native ./bin/cb
+	mv _build/src/main/cb.native ./bin/cb; \
+	unlink cb.native
 
 clean: 
 	ocamlbuild -clean; \
-	rm bin/cb
+	rm -f bin/cb
