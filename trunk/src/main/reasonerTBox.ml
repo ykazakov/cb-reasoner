@@ -1045,7 +1045,7 @@ let saturate ont =
           (* incrementing the progress bar *)
           PB.step ();
     ) ont;
-  print_live_statistics ();
+  (* print_live_statistics (); *)
   (*|  HI.print_stats ();*)
   (*|  HE.print_stats ();*)
   (* Gc.compact (); *) (* <- slow but useful in the long run *)
