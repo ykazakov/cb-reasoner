@@ -1,6 +1,6 @@
 (** reasoning algorithm is implemented here                                 *)
 
-open OwlSyntax
+open Owl2
 open Consed.T
 module O = Ontology
 module I = IndexTBox

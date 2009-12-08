@@ -1,6 +1,5 @@
-open OwlSyntax
+open Owl2
 open Consed.T
-module P = Printer_owlSyntax
 open Printf
 
 module PC = Polarity.Counter
@@ -221,7 +220,7 @@ let add_ObjectProperty_pc ont op pc =
   let module M = ObjectProperty.OMap in
   let module C = ObjectProperty.Constructor in
   match op.data with
-  | C.ObjectPropertyIRI _ -> (* adding only iris in the record *)
+  | C.IRI _ -> (* adding only iris in the record *)
       ont.record_ObjectProperty <- M.add op
         (let count = try M.find op ont.record_ObjectProperty
             with Not_found ->
@@ -240,7 +239,7 @@ let add_Class_pc ont c pc =
   let module M = Class.OMap in
   let module C = Class.Constructor in
   match c.data with
-  | C.ClassIRI iri -> (* adding only iris in the record *)
+  | C.IRI iri -> (* adding only iris in the record *)
       ont.record_Class <- M.add c
         (let count = try M.find c ont.record_Class
             with Not_found ->
@@ -258,16 +257,15 @@ let add_Class_pc ont c pc =
 let add_Individual_pc ont i pc =
   let module M = Individual.OMap in
   let module C = Individual.Constructor in
-  match i.data with
-  | C.IndividualIRI _ -> (* adding only iris in the record *)
-      ont.record_Individual <- M.add i
-        (let count = try M.find i ont.record_Individual
-            with Not_found ->
-                ont.count_IndividualIRI <-
-                succ ont.count_IndividualIRI;
-                0
-          in succ count
-        ) ont.record_Individual
+  (* adding only iris in the record *)
+  ont.record_Individual <- M.add i
+    (let count = try M.find i ont.record_Individual
+        with Not_found ->
+            ont.count_IndividualIRI <-
+            succ ont.count_IndividualIRI;
+            0
+      in succ count
+    ) ont.record_Individual
 ;;
 
 let rec add_ObjectPropertyExpression_pc ont ope pc =
@@ -367,12 +365,7 @@ and propagate_ClassExpression_pc ont ce pc =
       end;
       ont.count_ObjectMinCardinality <-
       PC.sum ont.count_ObjectMinCardinality pc
-  | C.DataSomeValuesFrom -> ()
-  | C.DataAllValuesFrom -> ()
-  | C.DataHasValue -> ()
-  | C.DataMinCardinality -> ()
-  | C.DataMaxCardinality -> ()
-  | C.DataExactCardinality -> ()
+  | _ -> ()
 ;;
 
 let add_ObjectPropertyAxiom ont opa =
@@ -390,23 +383,23 @@ let add_ObjectPropertyAxiom ont opa =
       | C.EquivalentObjectProperties (ope_set) ->
           Cset.iter (fun ope -> add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Both)) ope_set;
           ont.count_EquivalentProperties <- succ ont.count_EquivalentProperties
-      | C.DisjointObjectProperties -> ()
+      | C.DisjointObjectProperties _ -> ()
       | C.InverseObjectProperties (ope1, ope2) ->
           add_ObjectPropertyExpression_pc ont ope1 (PC.to_elt Polarity.Both);
           add_ObjectPropertyExpression_pc ont ope2 (PC.to_elt Polarity.Both);
           ont.count_InverseProperties <- succ ont.count_InverseProperties
-      | C.ObjectPropertyDomain -> ()
-      | C.ObjectPropertyRange -> ()
+      | C.ObjectPropertyDomain _ -> ()
+      | C.ObjectPropertyRange _ -> ()
       | C.FunctionalObjectProperty ope ->
           add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Negative);
           ont.count_FunctionalProperty <- succ ont.count_FunctionalProperty
       | C.InverseFunctionalObjectProperty ope ->
           add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Negative);
           ont.count_InverseFunctionalProperty <- succ ont.count_InverseFunctionalProperty
-      | C.ReflexiveObjectProperty -> ()
-      | C.IrreflexiveObjectProperty -> ()
-      | C.SymmetricObjectProperty -> ()
-      | C.AsymmetricObjectProperty -> ()
+      | C.ReflexiveObjectProperty _ -> ()
+      | C.IrreflexiveObjectProperty _ -> ()
+      | C.SymmetricObjectProperty _ -> ()
+      | C.AsymmetricObjectProperty _ -> ()
       | C.TransitiveObjectProperty ope ->
           add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Both);
           ont.count_TransitiveProperty <- succ ont.count_TransitiveProperty
@@ -428,8 +421,8 @@ let add_ClassExpressionAxiom ont cea =
       | C.EquivalentClasses (c_set) ->
           Cset.iter (fun ce -> add_ClassExpression_pc ont ce (PC.to_elt Polarity.Both)) c_set;
           ont.count_EquivalentClasses <- succ ont.count_EquivalentClasses
-      | C.DisjointClasses -> ()
-      | C.DisjointUnion -> ()
+      | C.DisjointClasses _ -> ()
+      | C.DisjointUnion _ -> ()
     end
 ;;
 
@@ -441,8 +434,8 @@ let add_Assertion ont a =
       ont.record_Assertion <- S.add a
         ont.record_Assertion;
       match a.data with
-      | C.SameIndividual -> ()
-      | C.DifferentIndividuals -> ()
+      | C.SameIndividual _ -> ()
+      | C.DifferentIndividuals _ -> ()
       | C.ClassAssertion (ce, i) ->
           add_ClassExpression_pc ont ce (PC.to_elt Polarity.Positive);
           add_Individual_pc ont i Polarity.Negative;
@@ -450,9 +443,9 @@ let add_Assertion ont a =
           add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Positive);
           add_Individual_pc ont i1 (PC.to_elt Polarity.Negative);
           add_Individual_pc ont i2 (PC.to_elt Polarity.Negative);
-      | C.NegativeObjectPropertyAssertion -> ()
-      | C.DataPropertyAssertion -> ()
-      | C.NegativeDataPropertyAssertion -> ()
+      | C.NegativeObjectPropertyAssertion _ -> ()
+      | C.DataPropertyAssertion _ -> ()
+      | C.NegativeDataPropertyAssertion _ -> ()
     end
 ;;
 

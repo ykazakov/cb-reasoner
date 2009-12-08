@@ -1,6 +1,6 @@
 (** computation and printing of the concept taxonomy *)
 
-open OwlSyntax
+open Owl2
 open Consed.T
 module O = Ontology
 module R = ReasonerTBox
@@ -15,22 +15,30 @@ module OrderedClass =
 struct
   type t = Class.t
   let precedence = function
-    | C.ClassIRI _ -> 1
+    | C.IRI _ -> 1
     | C.Thing -> 2
     | C.Nothing -> 3
   let compare c1 c2 =
     let c = Pervasives.compare (precedence c1.data) (precedence c2.data) in
     if c <> 0 then c
     else match c1.data, c2.data with
-      | C.ClassIRI iri1, C.ClassIRI iri2 ->
+      | C.IRI iri1, C.IRI iri2 ->
           compare iri1 iri2
       | C.Thing, C.Thing -> 0
       | C.Nothing, C.Nothing -> 0
       | _ -> invalid_arg "OrderedClass.compare"
-  let str = Krss.str_of_class
+  let str = Owl2IO.str_of_Class
 end
 
 module S = Set.Make (OrderedClass)
+module M = Map.Make (OrderedClass)
+
+(* taxonomy is stored as a hastable from classes to triples consisting of  *)
+(* the set of equivalent classes, direct superclasses, and direct          *)
+(* subclasses                                                              *)
+type t = (S.t * S.t * S.t) H.t
+
+let init ont = H.create (O.total_ClassIRI ont)
 
 (* Iterating over triples [a], [a_eq], [a_di] where [a] is a minimal       *)
 (* element in its equvalent class [a_eq] and [a_di] are directly implied   *)
@@ -40,18 +48,18 @@ let iter_a_eq_di f t ont top_equiv =
   let bot_equiv = ref S.empty in
   O.iter_record_Class ( fun c _ ->
           begin match c.data with
-            | C.ClassIRI _ ->
+            | C.IRI _ ->
                 let ce = ClassExpression.cons (CE.Class c) in
                 (* first collect all implied classes *)
                 let implied = ref ClassExpression.Set.empty in
-                let implied_sorted = ref S.empty in                
+                let implied_sorted = ref S.empty in
                 (* computing implied classes *)
                 ClassExpression.Set.iter ( fun de ->
                         if de != ce then
                           match de.data with
                           | CE.Class d ->
                               begin match d.data with
-                                | Class.Constructor.ClassIRI _ ->
+                                | Class.Constructor.IRI _ ->
                                     if not (S.mem d top_equiv) then (
                                       implied := ClassExpression.Set.add de !implied;
                                       implied_sorted := S.add d !implied_sorted;
@@ -69,7 +77,7 @@ let iter_a_eq_di f t ont top_equiv =
                 S.iter ( fun d ->
                         let de = ClassExpression.cons (CE.Class d) in
                         if d != c && (ClassExpression.Set.mem de !implied) then
-                          (                            
+                          (
                             let de_implied = R.find_implied t de in
                             if ClassExpression.Set.mem ce de_implied then (
                               implied := ClassExpression.Set.remove de !implied;
@@ -96,9 +104,9 @@ let iter_a_eq_di f t ont top_equiv =
                 ); (* close if *)
             | C.Thing -> ()
             | C.Nothing -> ()
-          end;
+          end;  
           (* incrementing the progress bar *)
-          PB.step ();
+          PB.step ();        
     ) ont;
   !bot_equiv
 ;;
@@ -107,7 +115,7 @@ let find_top_equiv t =
   match R.find_option_top t with
   | None -> S.empty;
   | Some top ->
-      let top_equiv = ref S.empty in      
+      let top_equiv = ref S.empty in
       ClassExpression.Set.iter ( fun de ->
               if de != top then
                 match de.data with
@@ -116,6 +124,81 @@ let find_top_equiv t =
                 | _ -> ()
         )	(R.find_implied t top);
       !top_equiv
+;;
+
+(* ===================== computing taxonomy ======================= *)
+
+let compute t ont =
+  PB.init (O.total_ClassIRI ont);
+  let taxonomy = init ont in
+  let find_record a =
+    (* retuns the triple for a; if there is no, returns the empty triple *)
+    try H.find taxonomy a
+    with Not_found -> (S.empty, S.empty, S.empty)
+  in
+  let add_sub a b =
+    (* add b as a child for a *)
+    let (eqv, sup, sub) = find_record a in
+    H.replace taxonomy a (eqv, sup, S.add b sub)
+  in
+  let top = Class.cons Class.Constructor.Thing in
+  let bot = Class.cons Class.Constructor.Nothing in
+  let top_eqv = find_top_equiv t in
+  (* check if the ontology is consistent *)
+  if S.mem bot top_eqv then begin
+    H.add taxonomy top (S.singleton bot, S.empty, S.empty);
+    (* setting progress bar to max *)
+    PB.set_max ();
+  end
+  else begin
+    let top_sub = ref S.empty in
+    (* populating taxonomy record *)
+    let bot_eqv =
+      iter_a_eq_di ( fun a eqv sup ->
+              S.iter (fun b -> add_sub b a) sup;
+              let (_, _, sub) = find_record a in
+              H.replace taxonomy a (eqv, sup, sub);
+              if S.is_empty sup then
+                top_sub := S.add a !top_sub;            
+        ) t ont top_eqv in
+    (* saving the record for top *)
+    H.add taxonomy top (top_eqv, S.empty,
+        if S.is_empty !top_sub then S.singleton bot else !top_sub);
+    let bot_sup = ref S.empty in    
+    (* saving the record for named classes *)
+    O.iter_record_Class ( fun a _ ->            
+            let (eqv, sup, sub) = find_record a in            
+            if not (S.is_empty eqv) then begin              
+              H.replace taxonomy a (
+                  eqv,
+                  (if S.is_empty sup then S.singleton top else sup),
+                  (if S.is_empty sub then S.singleton bot else sub)
+                );
+              if S.is_empty sub then bot_sup := S.add a !bot_sup;              
+            end;                        
+      ) ont;    
+    (* saving the recored for bottom *)
+    H.add taxonomy bot (
+        bot_eqv,
+        (if S.is_empty !bot_sup then S.singleton top else !bot_sup),
+        S.empty
+      );
+  end; (* close: else *)
+  taxonomy
+;;
+
+(* [find_iter tax c] returns a triple [iter_eqv], [iter_sup], [iter_sub]   *)
+(* of functions that iterate over respectively the set of equivalent       *)
+(* classes, direct superclasses and direct subclasses                      *)
+
+let find_iter t a =
+  let (eqv, sup, sub) =
+    try H.find t a
+    with Not_found -> S.empty, S.empty, S.empty
+  in
+  (fun f -> S.iter f eqv),
+  (fun f -> S.iter f sup),
+  (fun f -> S.iter f sub)
 ;;
 
 (* ================== formatting and printing ===================== *)
@@ -142,7 +225,7 @@ let print_lisp_triple out iter_equiv iter_parents iter_children =
           if !first then first := false else
             (F.print_string "="; F.print_space (););
           F.open_box 1;
-          F.print_string (Krss.str_of_class c);
+          F.print_string (Owl2IO.str_of_Class c);
           F.close_box ();
     );
   F.print_newline ();
@@ -153,7 +236,7 @@ let print_lisp_triple out iter_equiv iter_parents iter_children =
   iter_parents (fun c ->
           if !first then first := false else F.print_space ();
           F.open_box 1;
-          F.print_string (Krss.str_of_class c);
+          F.print_string (Owl2IO.str_of_Class c);
           F.close_box ();
     );
   F.close_box ();
@@ -166,7 +249,7 @@ let print_lisp_triple out iter_equiv iter_parents iter_children =
   iter_children (fun c ->
           if !first then first := false else F.print_space ();
           F.open_box 1;
-          F.print_string (Krss.str_of_class c);
+          F.print_string (Owl2IO.str_of_Class c);
           F.close_box ();
     );
   F.close_box ();
@@ -342,33 +425,33 @@ let print_krss t ont out =
   Printf.fprintf out ";;\n";
   Printf.fprintf out ";;   (implies c1 c2)     means that c1 is a direct sub-class of c2\n";
   Printf.fprintf out ";;   (equivalent c1 c2)  means that c1 and c2 are equivalent classes\n";
-  Printf.fprintf out ";;\n";  
+  Printf.fprintf out ";;\n";
   Printf.fprintf out ";;---------------------------------------------------------------------\n";
   let bot = Class.cons C.Nothing in
   let top_equiv = find_top_equiv t in
   (* check if the ontology is consistent *)
   if S.mem bot top_equiv then (
     Printf.fprintf out "(equivalent %s %s)\n"
-      (Krss.str_of_class (Class.cons C.Thing) ) (Krss.str_of_class (Class.cons C.Nothing) );
+      (Owl2IO.str_of_Class (Class.cons C.Thing) ) (Owl2IO.str_of_Class (Class.cons C.Nothing) );
     (* setting progress bar to max *)
     PB.set_max ();
   ) else (
     S.iter (fun c -> Printf.fprintf out "(equivalent %s %s)\n"
-              (Krss.str_of_class (Class.cons C.Thing) ) (Krss.str_of_class c)
+              (Owl2IO.str_of_Class (Class.cons C.Thing) ) (Owl2IO.str_of_Class c)
       ) top_equiv;
     let bot_equiv =
       iter_a_eq_di ( fun a equiv_a dimpl_a ->
               S.iter (fun b ->
-                      if a != b then Printf.fprintf out "(equivalent %s %s)\n" (Krss.str_of_class a) (Krss.str_of_class b)
+                      if a != b then Printf.fprintf out "(equivalent %s %s)\n" (Owl2IO.str_of_Class a) (Owl2IO.str_of_Class b)
                 ) equiv_a;
               (* printing directly implied concepts *)
               S.iter (fun b ->
-                      Printf.fprintf out "(implies %s %s)\n" (Krss.str_of_class a) (Krss.str_of_class b)
+                      Printf.fprintf out "(implies %s %s)\n" (Owl2IO.str_of_Class a) (Owl2IO.str_of_Class b)
                 ) dimpl_a;
         ) t ont top_equiv;
     in
     S.iter (fun c -> Printf.fprintf out "(equivalent %s %s)\n"
-              (Krss.str_of_class (Class.cons C.Nothing)) (Krss.str_of_class c)
+              (Owl2IO.str_of_Class (Class.cons C.Nothing)) (Owl2IO.str_of_Class c)
       ) bot_equiv
   ) (* close: else *)
 ;;
@@ -376,8 +459,8 @@ let print_krss t ont out =
 let print_fowl t ont out =
   let print_equivalent a s =
     if not (S.is_empty s) then begin
-      Printf.fprintf out "EquivalentClasses(%s" (Krss.str_of_class a);
-      S.iter (fun b -> Printf.fprintf out " %s" (Krss.str_of_class b)) s;
+      Printf.fprintf out "EquivalentClasses(%s" (Owl2IO.str_of_Class a);
+      S.iter (fun b -> Printf.fprintf out " %s" (Owl2IO.str_of_Class b)) s;
       Printf.fprintf out ")\n";
     end
   in
@@ -388,7 +471,7 @@ let print_fowl t ont out =
   (* check if the ontology is consistent *)
   if S.mem bot top_equiv then begin
     Printf.fprintf out "EquivalentClasses(%s %s)\n"
-      (Krss.str_of_class (Class.cons C.Thing) ) (Krss.str_of_class (Class.cons C.Nothing) );
+      (Owl2IO.str_of_Class (Class.cons C.Thing) ) (Owl2IO.str_of_Class (Class.cons C.Nothing) );
     (* setting progress bar to max *)
     PB.set_max ();
   end
@@ -399,7 +482,7 @@ let print_fowl t ont out =
               print_equivalent a equiv_a;
               (* printing directly implied concepts *)
               S.iter (fun b ->
-                      Printf.fprintf out "SubClassOf(%s %s)\n" (Krss.str_of_class a) (Krss.str_of_class b)
+                      Printf.fprintf out "SubClassOf(%s %s)\n" (Owl2IO.str_of_Class a) (Owl2IO.str_of_Class b)
                 ) dimpl_a;
         ) t ont top_equiv;
     in

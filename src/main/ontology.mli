@@ -1,4 +1,4 @@
-open OwlSyntax
+open Owl2
 
 type t
 val create : unit -> t

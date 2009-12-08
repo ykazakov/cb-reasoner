@@ -3,7 +3,7 @@ http://www.w3.org/TR/owl2-syntax/
 *)
 
 {
-open Fowl_parser
+open Owl2_fs_parser
     
 let update_pos lexbuf =  
   let pos = lexbuf.Lexing.lex_curr_p in
@@ -26,18 +26,18 @@ let _ =
   (* Reserved Keywords *)
   "owl:backwardCompatibleWith",      Owl_backwardCompatibleWith; 
   "owl:bottomDataProperty",          Owl_bottomDataProperty;
-  "owl:bottomObjectProperty",        Owl_bottomObjectProperty;
-  "xsd:dateTimeStamp",               Xsd_dateTimeStamp;
+  "owl:bottomObjectProperty",        Owl_bottomObjectProperty;  
   "owl:deprecated",                  Owl_deprecated;
   "owl:incompatibleWith",            Owl_incompatibleWith;
   "owl:Nothing",                     Owl_Nothing;
   "owl:priorVersion",                Owl_priorVersion;
   "owl:rational",                    Owl_rational; 
-  "owl:real",                        Owl_real;  
+  "owl:real",                        Owl_real;
+  "owl:versionInfo",                 Owl_versionInfo;  
   "owl:Thing",                       Owl_Thing;
   "owl:topDataProperty",             Owl_topDataProperty;
   "owl:topObjectProperty",           Owl_topObjectProperty;
-  "rdf:langPattern",                 Rdf_langPattern;
+  "rdf:langRange",                   Rdf_langRange;
   "rdf:PlainLiteral",                Rdf_PlainLiteral;
   "rdf:XMLLiteral",                  Rdf_XMLLiteral;
   "rdfs:comment",                    Rdfs_comment;
@@ -49,6 +49,8 @@ let _ =
   "xsd:base64Binary",                Xsd_base64Binary;
   "xsd:boolean",                     Xsd_boolean;
   "xsd:byte",                        Xsd_byte;
+  "xsd:dateTime",                    Xsd_dateTime;
+  "xsd:dateTimeStamp",               Xsd_dateTimeStamp;
   "xsd:decimal",                     Xsd_decimal;
   "xsd:double",                      Xsd_double;  
   "xsd:float",                       Xsd_float;
@@ -186,12 +188,6 @@ let _ =
   "SubAnnotationPropertyOf",         SubAnnotationPropertyOf;
   "AnnotationPropertyDomain",        AnnotationPropertyDomain;         
   "AnnotationPropertyRange",         AnnotationPropertyRange;
-
-(* !DEPRECATED: ONLY FOR COMPATIBILITY! *)
-  "EntityAnnotation",                EntityAnnotation;
-  "Label",                           Label;
-  "SubObjectPropertyChain",          ObjectPropertyChain;
-  "Comment",                         Comment
   ]
   
 }
@@ -216,9 +212,8 @@ rule token = parse
   | "//" [^ '\n']*                       { token lexbuf }
 (* integers, Strings, and Node IDs *)
   | ('0' | ['1'-'9'] ['0'-'9']*)         { NonNegativeInteger (int_of_string (Lexing.lexeme lexbuf)) }
-  | '"' [^ '"' '\\']* (("\\\"" | "\\\\") [^ '"' '\\']*)* '"' { 
+  | '"' ([^ '"' '\\']* (("\\\"" | "\\\\") [^ '"' '\\']*)* as s) '"' { 
       (* take into account that quoted string can span over multiple lines *)
-      let s = Lexing.lexeme lexbuf in    
       String.iter (fun c -> if c = '\n' then update_pos lexbuf) s;
       QuotedString (s)     
     } 

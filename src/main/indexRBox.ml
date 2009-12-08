@@ -1,7 +1,7 @@
 (* the necessary information for RBox reasoning from the ontology is kept  *)
 (* in index                                                                *)
 
-open OwlSyntax
+open Owl2
 open Consed.T
 module O = Ontology
 module H = ObjectProperty.Hashtbl

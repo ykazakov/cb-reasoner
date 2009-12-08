@@ -3,7 +3,7 @@
 (* ther role is inverse: [(a,true)] represents role [a], [(a,false)]       *)
 (* represents role [inverse a]                                             *)
 
-open OwlSyntax
+open Owl2
 open Consed.T
 
 type t = ObjectProperty.t * bool
@@ -16,7 +16,7 @@ let to_elt r = match r.data with
 
 let inv (a, ata) = a, (not ata)
 
-let str (a, ata) = Krss.str_of_object_property a ^ (if ata then "" else "-")
+let str (a, ata) = Owl2IO.str_of_ObjectProperty a ^ (if ata then "" else "-")
 
 module Set = struct
   module S = ObjectProperty.Set
