@@ -80,7 +80,7 @@ let _ =
     (if !input = "" then "standard input" else "\""^ !input ^ "\""); flush stderr;
   Printf.fprintf stderr "1. Loading the ontology...     "; flush stderr;
   PB.init (in_channel_length in_channel);
-  let ont = Krss.load_ontology in_channel in
+  let ont = Owl2IO.load_ontology in_channel in
   
   if !print_info then (
     Ontology.print_staticstics ont stderr;
@@ -91,7 +91,7 @@ let _ =
   
   if !distill then (
     classify := false;
-    Fowl.print_ontology ont out_channel
+    Owl2IO.print_ontology_ch ont out_channel
   );
   
   if !classify then (

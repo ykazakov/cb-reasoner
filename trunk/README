@@ -15,7 +15,7 @@ make file. Given these, to compile the program, just issue
 make
 
 if successful, this will create an executable cb in ./bin 
-folder. This executable can be consequently copied in any
+directory. This executable can be consequently copied in any
 convenient location.
 
 
@@ -31,10 +31,10 @@ Please use an ansi-capable terminal for optimal results.
 
 Example:
 
-./cb -c -s -o galen.tax galen.owl
+./cb -c -o galen_tax.owl galen.owl
 
 will load the ontology from file "galen.owl", classifies it,
-and output the sorted taxonomy into the file "galen.tax"
+and output the sorted taxonomy into the file "galen_tax.owl"
 
 
 III. Syntax

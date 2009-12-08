@@ -3,15 +3,17 @@
 (* inverse: [(a,true)] represents role [a], [(a,false)] represents role    *)
 (* [inverse a]                                                             *)
 
-type t = OwlSyntax.ObjectProperty.t * bool
+open Owl2
 
-val to_elt : OwlSyntax.ObjectPropertyExpression.t -> t
+type t = ObjectProperty.t * bool
+
+val to_elt : ObjectPropertyExpression.t -> t
 val inv: t -> t
 val str: t -> string
 
 module Set : sig
   type elt = t
-  type t = OwlSyntax.ObjectProperty.Set.t * OwlSyntax.ObjectProperty.Set.t
+  type t = ObjectProperty.Set.t * ObjectProperty.Set.t
   val empty: t
   val is_empty: t -> bool
   val mem: elt -> t -> bool
@@ -46,13 +48,13 @@ module Set : sig
   val equal: t -> t -> bool
   val inv : t -> t
   val symm : t -> t
-  val atomic : t -> OwlSyntax.ObjectProperty.Set.t
+  val atomic : t -> ObjectProperty.Set.t
   val str : t -> string
 end
 
 module Map : sig
   type key = t
-  type 'a t = 'a OwlSyntax.ObjectProperty.Map.t * 'a OwlSyntax.ObjectProperty.Map.t
+  type 'a t = 'a ObjectProperty.Map.t * 'a ObjectProperty.Map.t
   val empty: 'a t
   val is_empty: 'a t -> bool
   val singleton : key -> 'a -> 'a t
@@ -77,16 +79,16 @@ module Map : sig
   val right: ('a -> 'a -> bool) -> ('a -> 'a -> 'a -> bool) -> 'a t -> 'a t -> 'a t -> bool
   module Set : sig
     type elt
-    type t = OwlSyntax.ObjectProperty.Set.t * OwlSyntax.ObjectProperty.Set.t
+    type t = ObjectProperty.Set.t * ObjectProperty.Set.t
   end with type elt = key
   val iter_s : (key -> 'a -> unit) -> 'a t -> Set.t -> unit
   val inv : 'a t -> 'a t
-  val atomic : ('a -> 'a -> 'a) -> 'a t -> 'a OwlSyntax.ObjectProperty.Map.t
+  val atomic : ('a -> 'a -> 'a) -> 'a t -> 'a ObjectProperty.Map.t
 end
 
 module HSet : sig
   type elt  
-  type t = OwlSyntax.ObjectProperty.HSet.t * OwlSyntax.ObjectProperty.HSet.t
+  type t = ObjectProperty.HSet.t * ObjectProperty.HSet.t
   val create: int -> t
   val clear: t -> unit
   val copy: t -> t

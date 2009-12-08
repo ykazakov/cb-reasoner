@@ -1,6 +1,6 @@
 (** a module for computing and printing of the object property taxonomy *)
 
-open OwlSyntax
+open Owl2
 module O = Ontology
 module H = ObjectProperty.Hashtbl
 module S = ObjectProperty.Set
@@ -424,11 +424,11 @@ let saturate ont =
           let sa, si = find_subproperties t ar in
           S.iter2 (fun tr ->
                   Printf.fprintf stderr "Warning! transitive functional role %s!\n"
-                    (Fowl.str_of_object_property tr)
+                    (Owl2IO.str_of_ObjectProperty tr)
             ) sa index.I.trans_roles;
           S.iter2 (fun tr ->
                   Printf.fprintf stderr "Warning! transitive functional role %s!\n"
-                    (Fowl.str_of_object_property tr)
+                    (Owl2IO.str_of_ObjectProperty tr)
             ) si index.I.trans_roles;
     ) index.I.funct_roles;    
     
@@ -436,11 +436,11 @@ let saturate ont =
           let sa, si = find_subproperties t ar in
           S.iter2 (fun tr ->
                   Printf.fprintf stderr "Warning! transitive inverse functional role %s!\n"
-                    (Fowl.str_of_object_property tr)
+                    (Owl2IO.str_of_ObjectProperty tr)
             ) sa index.I.trans_roles;
           S.iter2 (fun tr ->
                   Printf.fprintf stderr "Warning! transitive inverse functional role %s!\n"
-                    (Fowl.str_of_object_property tr)
+                    (Owl2IO.str_of_ObjectProperty tr)
             ) si index.I.trans_roles;
     ) index.I.inv_funct_roles;
     
@@ -451,7 +451,7 @@ let saturate ont =
 
 let print t ont out =
   O.iter_record_ObjectProperty ( fun op _ ->
-          Printf.fprintf out "%s: " (Krss.str_of_object_property op);
+          Printf.fprintf out "%s: " (Owl2IO.str_of_ObjectProperty op);
           Printf.fprintf out "subproperties: %s; " (RS.str (find_subproperties t op));
           Printf.fprintf out "sub-transitive: %s\n" (RS.str (find_sub_trans t op));
     ) ont;

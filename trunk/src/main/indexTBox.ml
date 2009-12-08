@@ -1,5 +1,5 @@
 (* index for quick computations *)
-open OwlSyntax
+open Owl2
 open Consed.T
 module O = Ontology
 module OPE = ObjectPropertyExpression.Constructor
@@ -385,8 +385,8 @@ let init ont =
                         add_c_impl concept_index ce ce_c;
                         add_c_impl concept_index ce_c ce
                       )) ce_set
-          | A.DisjointClasses -> ()
-          | A.DisjointUnion -> ()
+          | A.DisjointClasses _ -> ()
+          | A.DisjointUnion _ -> ()
     ) ont;
   
   (* We call an atomic role [r] relevant if some concept [(some r C)] or   *)

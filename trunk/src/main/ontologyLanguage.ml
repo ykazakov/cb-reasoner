@@ -1,7 +1,7 @@
 (* provides a list of ontology languages and a function to determine the   *)
 (* language from ontology statistics                                       *)
 
-open OwlSyntax
+open Owl2
 module O = Ontology
 module PC = Polarity.Counter
 
