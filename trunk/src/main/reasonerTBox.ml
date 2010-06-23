@@ -604,7 +604,7 @@ let rt_assign_is t core_pos core_neg =
   (* --- statistics ends --- *)
   let is = init_is t core_pos core_neg in
   begin match t.top with
-    | Some c -> is.implied_new_neg <- c :: is.implied_new_neg;
+    | Some c -> is_add_implied_neg t is c;
     | _ -> ();
   end;
   HI.add t.rt_to_is is;
