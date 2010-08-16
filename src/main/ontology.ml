@@ -6,20 +6,47 @@ module PC = Polarity.Counter
 
 (**======================= ontology ========================**)
 
+module OrderedClass =
+struct
+  type t = Class.t
+  let compare c1 c2 = String.compare (Class.str_of c1) (Class.str_of c2)
+end
+
+module ClassMap = Map.Make (OrderedClass)
+module ClassSet = Set.Make (OrderedClass)
+
 type t = {
+  cons_IRI : IRI.Cons.t;
+  cons_NodeID : NodeID.Cons.t;
+	cons_ObjectProperty : ObjectProperty.Cons.t;
+  cons_Literal : Literal.Cons.t;
+  cons_ObjectPropertyExpression : ObjectPropertyExpression.Cons.t;
+  cons_DataPropertyExpression : DataPropertyExpression.Cons.t;
+  cons_DataRange : DataRange.Cons.t;
+  cons_ClassExpression : ClassExpression.Cons.t;
+  cons_ClassExpressionAxiom : ClassExpressionAxiom.Cons.t;
+  cons_ObjectPropertyAxiom : ObjectPropertyAxiom.Cons.t;
+  cons_DataPropertyAxiom : DataPropertyAxiom.Cons.t;
+  cons_DatatypeDefinition : DatatypeDefinition.Cons.t;
+  cons_Key : Key.Cons.t;
+  cons_Assertion : Assertion.Cons.t;
+  cons_AnnotationSubject : AnnotationSubject.Cons.t;
+  cons_AnnotationValue : AnnotationValue.Cons.t;
+  cons_Annotation : Annotation.Cons.t;
+  cons_AnnotationAxiom : AnnotationAxiom.Cons.t;
   
   (* ========== signature ========== *)
-  mutable record_ObjectProperty : int ObjectProperty.OMap.t;
+  mutable record_ObjectProperty : int ObjectProperty.Map.t;
   mutable count_ObjectPropertyIRI : int;
   mutable count_TopObjectProperty : PC.t;
   mutable count_BottomObjectProperty: PC.t;
   
-  mutable record_Class : int Class.OMap.t;
+  mutable record_Class : int ClassMap.t;
   mutable count_ClassIRI : int;
   mutable count_Thing : PC.t;
   mutable count_Nothing: PC.t;
   
-  mutable record_Individual : int Individual.OMap.t;
+  mutable record_Individual : int Individual.Map.t;
   mutable count_IndividualIRI : int;
   
   (* ========== structure ========== *)
@@ -68,18 +95,37 @@ type t = {
 
 let create () =	{
 
-(* ========== signature ========== *)
-  record_ObjectProperty = ObjectProperty.OMap.empty;
+  cons_IRI = IRI.Cons.create 127;
+	cons_NodeID = NodeID.Cons.create 127;
+  cons_ObjectProperty = ObjectProperty.Cons.create 127;
+  cons_Literal = Literal.Cons.create 127;
+  cons_ObjectPropertyExpression = ObjectPropertyExpression.Cons.create 127;
+  cons_DataPropertyExpression = DataPropertyExpression.Cons.create 127;
+  cons_DataRange = DataRange.Cons.create 127;
+  cons_ClassExpression = ClassExpression.Cons.create 127;
+  cons_ClassExpressionAxiom = ClassExpressionAxiom.Cons.create 127;
+  cons_ObjectPropertyAxiom = ObjectPropertyAxiom.Cons.create 127;
+  cons_DataPropertyAxiom = DataPropertyAxiom.Cons.create 127;
+  cons_DatatypeDefinition = DatatypeDefinition.Cons.create 127;
+  cons_Key = Key.Cons.create 127;
+  cons_Assertion = Assertion.Cons.create 127;
+  cons_AnnotationSubject = AnnotationSubject.Cons.create 127;
+  cons_AnnotationValue = AnnotationValue.Cons.create 127;
+  cons_Annotation = Annotation.Cons.create 127;
+  cons_AnnotationAxiom = AnnotationAxiom.Cons.create 127;
+  
+  (* ========== signature ========== *)
+  record_ObjectProperty = ObjectProperty.Map.empty;
   count_ObjectPropertyIRI = 0;
   count_TopObjectProperty = PC.zero;
   count_BottomObjectProperty = PC.zero;
   
-  record_Class = Class.OMap.empty;
+  record_Class = ClassMap.empty;
   count_ClassIRI = 0;
   count_Thing = PC.zero;
   count_Nothing = PC.zero;
   
-  record_Individual = Individual.OMap.empty;
+  record_Individual = Individual.Map.empty;
   count_IndividualIRI = 0;
   
   (* ========== structure ========== *)
@@ -124,14 +170,34 @@ let create () =	{
   count_PropertyAssertion = 0;
 }
 
+(**======================= consing =========================**)
+let cons_IRI ont id = IRI.cons ont.cons_IRI id
+let cons_NodeID ont id = NodeID.cons ont.cons_NodeID id
+let cons_ObjectProperty ont op = ObjectProperty.cons ont.cons_ObjectProperty op
+let cons_Literal ont lt = Literal.cons ont.cons_Literal lt
+let cons_ObjectPropertyExpression ont ope = ObjectPropertyExpression.cons ont.cons_ObjectPropertyExpression ope
+let cons_DataPropertyExpression ont dpe = DataPropertyExpression.cons ont.cons_DataPropertyExpression dpe
+let cons_DataRange ont dr = DataRange.cons ont.cons_DataRange dr
+let cons_ClassExpression ont ce = ClassExpression.cons ont.cons_ClassExpression ce
+let cons_ClassExpressionAxiom ont ax = ClassExpressionAxiom.cons ont.cons_ClassExpressionAxiom ax
+let cons_ObjectPropertyAxiom ont ax = ObjectPropertyAxiom.cons ont.cons_ObjectPropertyAxiom ax
+let cons_DataPropertyAxiom ont ax = DataPropertyAxiom.cons ont.cons_DataPropertyAxiom ax
+let cons_DatatypeDefinition ont ax = DatatypeDefinition.cons ont.cons_DatatypeDefinition ax
+let cons_Key ont ax = Key.cons ont.cons_Key ax
+let cons_Assertion ont ax = Assertion.cons ont.cons_Assertion ax
+let cons_AnnotationSubject ont ax = AnnotationSubject.cons ont.cons_AnnotationSubject ax
+let cons_AnnotationValue ont ax = AnnotationValue.cons ont.cons_AnnotationValue ax
+let cons_Annotation ont ax = Annotation.cons ont.cons_Annotation ax
+let cons_AnnotationAxiom ont ax = AnnotationAxiom.cons ont.cons_AnnotationAxiom ax
+
 (**====================== iterators ========================**)
 
 let iter_record_ObjectProperty f ont =
-  ObjectProperty.OMap.iter f ont.record_ObjectProperty
+  ObjectProperty.Map.iter f ont.record_ObjectProperty
 let iter_record_Class f ont =
-  Class.OMap.iter f ont.record_Class
+  ClassMap.iter f ont.record_Class
 let iter_record_Individual f ont =
-  Individual.OMap.iter f ont.record_Individual
+  Individual.Map.iter f ont.record_Individual
 
 let iter_record_ComplexObjectPropertyExpression f ont =
   ObjectPropertyExpression.Map.iter f ont.record_ComplexObjectPropertyExpression
@@ -217,7 +283,7 @@ let total_PropertyAssertion ont = ont.count_PropertyAssertion
 (**==== insertion, computation of polarities and stats =====**)
 
 let add_ObjectProperty_pc ont op pc =
-  let module M = ObjectProperty.OMap in
+  let module M = ObjectProperty.Map in
   let module C = ObjectProperty.Constructor in
   match op.data with
   | C.IRI _ -> (* adding only iris in the record *)
@@ -236,9 +302,9 @@ let add_ObjectProperty_pc ont op pc =
 ;;
 
 let add_Class_pc ont c pc =
-  let module M = Class.OMap in
+  let module M = ClassMap in
   let module C = Class.Constructor in
-  match c.data with
+  match c with
   | C.IRI iri -> (* adding only iris in the record *)
       ont.record_Class <- M.add c
         (let count = try M.find c ont.record_Class
@@ -255,7 +321,7 @@ let add_Class_pc ont c pc =
 ;;
 
 let add_Individual_pc ont i pc =
-  let module M = Individual.OMap in
+  let module M = Individual.Map in
   let module C = Individual.Constructor in
   (* adding only iris in the record *)
   ont.record_Individual <- M.add i
@@ -306,20 +372,22 @@ and propagate_ClassExpression_pc ont ce pc =
   let module C = ClassExpression.Constructor in
   match ce.data with
   | C.Class c -> add_Class_pc ont c pc
-  | C.ObjectIntersectionOf c_set ->
-      Cset.iter (fun de -> add_ClassExpression_pc ont de pc) c_set;
+  | C.ObjectIntersectionOf (ce, cce) ->
+      add_ClassExpression_pc ont ce pc;
+      add_ClassExpression_pc ont cce pc;
       ont.count_ObjectIntersectionOf <-
-      PC.sum ont.count_ObjectIntersectionOf pc
-  | C.ObjectUnionOf c_set ->
-      Cset.iter (fun de -> add_ClassExpression_pc ont de pc) c_set;
+      PC.sum ont.count_ObjectIntersectionOf pc  
+  | C.ObjectUnionOf (ce, cce) ->
+      add_ClassExpression_pc ont ce pc;
+      add_ClassExpression_pc ont cce pc;
       ont.count_ObjectUnionOf <-
-      PC.sum ont.count_ObjectUnionOf pc
+      PC.sum ont.count_ObjectUnionOf pc  
   | C.ObjectComplementOf de ->
       add_ClassExpression_pc ont de (PC.inverse pc);
       ont.count_ObjectComplementOf <-
       PC.sum ont.count_ObjectComplementOf pc
-  | C.ObjectOneOf i_set ->
-      Cset.iter (fun i -> add_Individual_pc ont i pc) i_set;
+  | C.ObjectOneOf i_lst ->
+      List.iter (fun i -> add_Individual_pc ont i pc) i_lst;
       ont.count_ObjectOneOf <-
       PC.sum ont.count_ObjectOneOf pc
   | C.ObjectSomeValuesFrom (ope, de) ->
@@ -380,8 +448,8 @@ let add_ObjectPropertyAxiom ont opa =
           List.iter (fun ope -> add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Negative)) ope_ch;
           add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Positive);
           ont.count_SubPropertyOf <- succ ont.count_SubPropertyOf
-      | C.EquivalentObjectProperties (ope_set) ->
-          Cset.iter (fun ope -> add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Both)) ope_set;
+      | C.EquivalentObjectProperties (ope_lst) ->
+          List.iter (fun ope -> add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Both)) ope_lst;
           ont.count_EquivalentProperties <- succ ont.count_EquivalentProperties
       | C.DisjointObjectProperties _ -> ()
       | C.InverseObjectProperties (ope1, ope2) ->
@@ -418,8 +486,8 @@ let add_ClassExpressionAxiom ont cea =
           add_ClassExpression_pc ont ce1 (PC.to_elt Polarity.Negative);
           add_ClassExpression_pc ont ce2 (PC.to_elt Polarity.Positive);
           ont.count_SubClassOf <- succ ont.count_SubClassOf
-      | C.EquivalentClasses (c_set) ->
-          Cset.iter (fun ce -> add_ClassExpression_pc ont ce (PC.to_elt Polarity.Both)) c_set;
+      | C.EquivalentClasses (c_lst) ->
+          List.iter (fun ce -> add_ClassExpression_pc ont ce (PC.to_elt Polarity.Both)) c_lst;
           ont.count_EquivalentClasses <- succ ont.count_EquivalentClasses
       | C.DisjointClasses _ -> ()
       | C.DisjointUnion _ -> ()
@@ -502,34 +570,3 @@ let print_staticstics ont out =
   fprintf out "\tobject property assertions:\t %n\n" ont.count_PropertyAssertion;
   fprintf out "\n";
 ;;
-
-(*|let print_rbox_axioms ont out =                          *)
-(*|  iter_rbox_axioms (fun ax ->                            *)
-(*|          Printf.fprintf out "%s\n" (ObjectPropertyAxiom.str ax)   *)
-(*|    ) ont                                                *)
-(*|;;                                                       *)
-(*|                                                         *)
-(*|let print_tbox_axioms ont out =                          *)
-(*|  iter_tbox_axioms (fun ax ->                            *)
-(*|          Printf.fprintf out "%s\n" (ClassExpressionAxiom.str ax)*)
-(*|    ) ont;                                               *)
-(*|;;                                                       *)
-(*|                                                         *)
-(*|let print_abox_axioms ont out =                          *)
-(*|  iter_abox_axioms (fun ax ->                            *)
-(*|          Printf.fprintf out "%s\n" (Assertion.str ax)   *)
-(*|    ) ont;                                               *)
-(*|;;                                                       *)
-(*|                                                         *)
-(*|let print_axioms ont out =                               *)
-(*|  Printf.fprintf out "RBox axioms:\n";                   *)
-(*|  Printf.fprintf out "------------\n";                   *)
-(*|  print_rbox_axioms ont out;                             *)
-(*|  Printf.fprintf out "\nTBox axioms:\n";                 *)
-(*|  Printf.fprintf out "------------\n";                   *)
-(*|  print_tbox_axioms ont out;                             *)
-(*|  Printf.fprintf out "\nABox axioms:\n";                 *)
-(*|  Printf.fprintf out "------------\n";                   *)
-(*|  print_abox_axioms ont out;                             *)
-(*|  Printf.fprintf out "\n";                               *)
-(*|;;                                                       *)

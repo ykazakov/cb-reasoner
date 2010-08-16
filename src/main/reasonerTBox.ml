@@ -31,31 +31,14 @@ module PB = ProgressBar
 (* [stack_pos] for positive concepts and [stack_neg] for negative          *)
 (* concepts. All concepts in [implied] are thought to be negative.         *)
 
-(*|module HS = ClassExpression.HSet*)
-
-(*|module HS = Carrset.Make (ClassExpression.Constructor)*)
-
-module HS = Hashsetlp.Make (struct
-    type t = ClassExpression.t
-    let equal = (==)
-    let hash k = k.tag
-    type elt = ClassExpression.t
-    let key e = e
-  end)
-
-(*|module S = Iset.Make (R)*)
-(*|module M = Imap.Make (R)*)
 module IS = Intset
 
 type impl_set = {
   (* the root of the implication set *)
-  (*|  root : R.t;*)
   core_pos : ClassExpression.Set.t;
   core_neg : ClassExpression.Set.t;
-  (* concepts implied by the root *)
-  mutable implied : ClassExpression.Set.t;
-  (*|  mutable implieda : ClassExpression.Set.t;*)
-  (*|  implieda : HS.t;*)
+  (* concepts implied by the core *)  
+  implied : ClassExpression.HSet.t;
   (* stack of unprocessed positive and negative concepts; invariant: every *)
   (* concept in [implied_new_pos] and in [implied_new_neg] already occurs  *)
   (* in [implied].                                                         *)
@@ -64,10 +47,8 @@ type impl_set = {
   (* [children] maps every role [r] the set of child roots existentially   *)
   (* "required" by the current implication set, and which can be later     *)
   (* "affected" by the concepts in the implication set.                    *)
-  mutable children : edge list ObjectProperty.Map.t;
-  (*|  mutable childrena : edge list ObjectProperty.Map.t;*)
-  mutable childreni : edge list ObjectProperty.Map.t;
-  (*|  mutable childrenia : edge list ObjectProperty.Map.t;*)
+  mutable children : edge list ObjectProperty.Map.t;  
+  mutable childreni : edge list ObjectProperty.Map.t;  
   (* [parents] maps every role [r] to the set of child roots that          *)
   (* existentially require the current implication set and later can be    *)
   (* "affected" by the concepts in the implication set.                    *)
@@ -87,34 +68,17 @@ and edge = {
   mutable rolesi_new : ObjectProperty.t list;
 }
 
-let ed_get_rt_child_new_pos ed =
-  ClassExpression.Set.diff ed.rt_child_new_pos ed.is_child.implied
-let ed_get_rt_child_new_neg ed =
-  ClassExpression.Set.diff ed.rt_child_new_neg ed.is_child.implied
-
-(*|(* Hash set of impication sets *)     *)
-(*|module HI = Hashset.Make (struct      *)
-(*|    type t = R.t                      *)
-(*|    type v = impl_set                 *)
-(*|    let equal = R.equal               *)
-(*|    let hash = R.hash                 *)
-(*|    let key is = is.root              *)
-(*|  end)                                *)
-(*|                                      *)
-(*|(*|(* Hash set of edges *)          *)*)
-(*|module HE = Hashset.Make (struct      *)
-(*|    type t = int                      *)
-(*|    type v = edge                     *)
-(*|    let equal = (==)                  *)
-(*|    let hash i = i                    *)
-(*|    let key ed = ed.id                *)
-(*|  end)                                *)
+let ed_get_rt_child_new_pos ed =  
+  ClassExpression.Set.filter (fun c -> not (ClassExpression.HSet.mem ed.is_child.implied c)) ed.rt_child_new_pos
+let ed_get_rt_child_new_neg ed =  
+  ClassExpression.Set.filter (fun c -> not (ClassExpression.HSet.mem ed.is_child.implied c)) ed.rt_child_new_neg
 
 (* Hash set of impication sets *)
 module HI = Hashsetlp.Make (struct
     type t = ClassExpression.Set.t * ClassExpression.Set.t
     type elt = impl_set
-    let equal (cp1, cn1) (cp2, cn2) = ClassExpression.Set.equal cp1 cp2 && ClassExpression.Set.equal cn1 cn2
+    let equal (cp1, cn1) (cp2, cn2) =
+      ClassExpression.Set.equal cp1 cp2 && ClassExpression.Set.equal cn1 cn2
     let hash (cp, cn) = (ClassExpression.Set.hash cp) + (ClassExpression.Set.hash cn)
     let key is = is.core_pos, is.core_neg
   end)
@@ -138,9 +102,6 @@ let is_processed_ed_roles ed =
 let is_processed_ed_root ed =
   ClassExpression.Set.is_empty ed.rt_child_new_pos &&
   ClassExpression.Set.is_empty ed.rt_child_new_neg
-(*|  match ed.is_child_op with*)
-(*|  | IS _ -> true           *)
-(*|  | RT _ -> false          *)
 ;;
 
 (* The main datastructure for performing saturation under inference rules  *)
@@ -195,7 +156,7 @@ let find_option_top t = t.top
 ;;
 
 (* required by the interface *)
-let find_implied t c = 
+let find_implied t c =
   let is = HI.find t.rt_to_is ((ClassExpression.Set.singleton c), ClassExpression.Set.empty)
   in is.implied
 ;;
@@ -296,8 +257,10 @@ let role_is_functional role_record = function
 let check_implication_sets t =
   HI.iter (fun is ->
       (* all elements of [is.root] should be in [is.implied] *)
-          assert (ClassExpression.Set.is_subset is.core_pos is.implied);
-          assert (ClassExpression.Set.is_subset is.core_neg is.implied);
+      (*|          assert (ClassExpression.Set.is_subset is.core_pos is.implied);*)
+      (*|          assert (ClassExpression.Set.is_subset is.core_neg is.implied);*)
+          assert (ClassExpression.Set.for_all (ClassExpression.HSet.mem is.implied) is.core_pos);
+          assert (ClassExpression.Set.for_all (ClassExpression.HSet.mem is.implied) is.core_neg);
           (* every parent edge [ed] of [is] for a role [r = (ar, ar_dir)]  *)
           (* sould: 1. have a child implication set [ed.is_child_op]       *)
           (* assigned; 2. this child implication set shoud coninside with  *)
@@ -376,10 +339,10 @@ let check_edges t index =
           (* for all sibling child edges the root concepts have been       *)
           (* merged to the implied concepts                                *)
           iter_sibling_child_edges_ed (fun sed ->
-                  assert (ClassExpression.Set.is_subset sed.is_child.core_pos ed.is_parent.implied);
-                  assert (ClassExpression.Set.is_subset sed.is_child.core_neg ed.is_parent.implied);
-                  assert (ClassExpression.Set.is_subset sed.rt_child_new_pos ed.is_parent.implied);
-                  assert (ClassExpression.Set.is_subset sed.rt_child_new_neg ed.is_parent.implied);
+                  assert (ClassExpression.Set.for_all (ClassExpression.HSet.mem ed.is_parent.implied) sed.is_child.core_pos);
+                  assert (ClassExpression.Set.for_all (ClassExpression.HSet.mem ed.is_parent.implied) sed.is_child.core_neg);
+                  assert (ClassExpression.Set.for_all (ClassExpression.HSet.mem ed.is_parent.implied) sed.rt_child_new_pos);
+                  assert (ClassExpression.Set.for_all (ClassExpression.HSet.mem ed.is_parent.implied) sed.rt_child_new_neg);
                   assert (ObjectProperty.Set.is_subset
                       (List.fold_left (fun s ar -> ObjectProperty.Set.remove ar s) sed.roles sed.roles_new)
                       ed.rolesi);
@@ -506,27 +469,26 @@ let ed_is_deleted ed = ed.id == 0
 
 (* add positive concept [c] to the stack of set [is] *)
 let is_add_implied_pos t is c =
-  if not (ClassExpression.Set.mem c is.implied) then	(
-    if is_processed_is is then to_process_is t is;
-    is.implied <- ClassExpression.Set.add c is.implied;
-    (*|    HS.add is.implieda c;*)
+  if not (ClassExpression.HSet.mem is.implied c) then begin    
+    ClassExpression.HSet.add is.implied c;
+    if is_processed_is is then to_process_is t is;    
     is.implied_new_pos <- c :: is.implied_new_pos;
     incr total_implied;
-  )
+  end
 ;;
+
 let is_union_implied_pos t is s =
   ClassExpression.Set.iter (fun c -> is_add_implied_pos t is c) s;
 ;;
 
 (* add negative concept [c] to the stack of [is] *)
 let is_add_implied_neg t is c =
-  if not (ClassExpression.Set.mem c is.implied ) then	(
-    if is_processed_is is then to_process_is t is;
-    is.implied <- ClassExpression.Set.add c is.implied;
-    (*|    HS.add is.implieda c;*)
+  if not (ClassExpression.HSet.mem is.implied c) then	begin
+    ClassExpression.HSet.add is.implied c;
+    if is_processed_is is then to_process_is t is;    
     is.implied_new_neg <- c :: is.implied_new_neg;
     incr total_implied;
-  )
+  end
 ;;
 let is_union_implied_neg t is s =
   ClassExpression.Set.iter (is_add_implied_neg t is) s
@@ -555,19 +517,15 @@ let ed_union_roles t ed roles rolesi =
 let init_is t core_pos core_neg =
   let is = {
     core_pos = core_pos;
-    core_neg = core_neg;
-    (*|    required = false;*)
-    implied = ClassExpression.Set.empty;
-    (*|    implieda = HS.create (2 * (                      *)
-    (*|            ClassExpression.Set.cardinal (R.pos rt) +*)
-    (*|            ClassExpression.Set.cardinal (R.neg rt)  *)
-    (*|          ));                                        *)
+    core_neg = core_neg;    
+    implied = ClassExpression.HSet.create (2 * (
+            ClassExpression.Set.cardinal core_pos +
+            ClassExpression.Set.cardinal core_neg
+          ));
     implied_new_pos = [];
     implied_new_neg = [];
-    children = ObjectProperty.Map.empty;
-    (*|    childrena = ObjectProperty.Map.empty;*)
-    childreni = ObjectProperty.Map.empty;
-    (*|    childrenia = ObjectProperty.Map.empty;*)
+    children = ObjectProperty.Map.empty;    
+    childreni = ObjectProperty.Map.empty;    
     parents = ObjectProperty.Map.empty;
     parentsi = ObjectProperty.Map.empty;
   } in
@@ -660,14 +618,31 @@ let is_propagate_backward t ch_is concept_record =
     );
 ;;
 
+(* iterating over common keys of hashset and hasmap *)
+let iter_hm_hs f h s =
+  let l = ref [] in
+  if ClassExpression.HMap.length h > ClassExpression.HSet.length s then
+    ClassExpression.HSet.iter (fun x ->
+            try let y = ClassExpression.HMap.find h x in
+              l := (x, y) :: !l
+            with Not_found -> ()
+      ) s
+  else
+    ClassExpression.HMap.iter (fun x y ->
+            if ClassExpression.HSet.mem s x then
+              l := (x, y) :: !l
+      ) h;
+  List.iter (fun (x, y) -> f x y) !l;
+;;
+
 (* when a role with [role_record] and [role_dir] is added to the ede [ed] *)
-let ed_propagate_backward_r t ed role_record role_dir =
-  ClassExpression.Map.iter_s ( fun _ (c_pos, c_neg) ->
+let ed_propagate_backward_r t ed role_record role_dir =  
+  iter_hm_hs ( fun _ (c_pos, c_neg) ->
           is_union_implied_pos t ed.is_parent c_pos;
           is_union_implied_neg t ed.is_parent c_neg;
     )
     (if role_dir then role_record.I.r_succi else role_record.I.r_succ)
-    ed.is_child.implied
+    ed.is_child.implied;
 ;;
 
 (* when a concept with [concept_record] is added to the root of the edge   *)
@@ -687,13 +662,15 @@ let ed_propagate_backward_c t ed concept_record =
 (* concepts [c_pos] and negative concepts [c_neg]                          *)
 let ed_extend_root t index ed c_pos c_neg =
   let implied = ed.is_child.implied in
-  let c_pos = ClassExpression.Set.diff c_pos implied in
+  (*|  let c_pos = ClassExpression.Set.diff c_pos implied in*)
+  let c_pos = ClassExpression.Set.filter (fun c -> not (ClassExpression.HSet.mem implied c)) c_pos in
   let c_pos = ClassExpression.Set.diff c_pos c_neg in
   let c_pos = ClassExpression.Set.diff c_pos ed.is_child.core_pos in
   let c_pos = ClassExpression.Set.diff c_pos ed.is_child.core_neg in
   let c_pos = ClassExpression.Set.diff c_pos ed.rt_child_new_pos in
   let c_pos = ClassExpression.Set.diff c_pos ed.rt_child_new_neg in
-  let c_neg = ClassExpression.Set.diff c_neg implied in
+  (*|  let c_neg = ClassExpression.Set.diff c_neg implied in*)
+  let c_neg = ClassExpression.Set.filter (fun c -> not (ClassExpression.HSet.mem implied c)) c_neg in
   let c_neg = ClassExpression.Set.diff c_neg ed.is_child.core_neg in
   let c_neg = ClassExpression.Set.diff c_neg ed.rt_child_new_neg in
   if not (ClassExpression.Set.is_empty c_pos && ClassExpression.Set.is_empty c_neg) then (
@@ -732,8 +709,8 @@ let is_propagate_forward t index pt_is concept_record =
     );
 ;;
 
-let ed_propagate_forward_r t index ed role_record role_dir =
-  ClassExpression.Map.iter_s ( fun _ (c_pos, c_neg) ->
+let ed_propagate_forward_r t index ed role_record role_dir =  
+  iter_hm_hs ( fun _ (c_pos, c_neg) ->
           ed_extend_root t index ed c_pos c_neg
     ) (if role_dir then role_record.I.r_succ else role_record.I.r_succi)
     ed.is_parent.implied
@@ -778,14 +755,11 @@ let process_is_implied_new_pos t index is ce =
   let module C = ClassExpression.Constructor in
   match ce.data with
   | C.Class c ->
-      begin match c.data with
+      begin match c with
         | Class.Constructor.Nothing ->
-        (* removing everything from [is] except for [ce = bottom] *)
-            total_implied := !total_implied - ClassExpression.Set.cardinal is.implied;
-            is.implied <- ClassExpression.Set.singleton ce;
-            (*|            is.implieda <- ClassExpression.Set.singleton ce;*)
-            (*|            HS.clear is.implieda;*)
-            (*|            HS.add is.implieda ce;*)
+        (* removing everything from [is] except for [ce = bottom] *)        
+            ClassExpression.HSet.clear is.implied;
+            ClassExpression.HSet.add is.implied ce;
             incr total_implied;
             is.implied_new_pos <- [];
             is.implied_new_neg <- [ce];
@@ -798,22 +772,20 @@ let process_is_implied_new_pos t index is ce =
                     List.iter (fun ed -> if HE.mem t.edges ed.id
                             then purge_edge t ed) ed_lst;
               ) is.childreni;
-            is.children <- ObjectProperty.Map.empty;
-            (*|            is.childrena <- ObjectProperty.Map.empty;*)
-            is.childreni <- ObjectProperty.Map.empty;
-        (*|            is.childrenia <- ObjectProperty.Map.empty;*)
+            is.children <- ObjectProperty.Map.empty;            
+            is.childreni <- ObjectProperty.Map.empty;        
         | _ -> ()
       end
-  | C.ObjectIntersectionOf c_set ->
-      Cset.iter (fun c -> is_add_implied_pos t is c) c_set
+  | C.ObjectIntersectionOf (c1, c2) ->
+      is_add_implied_pos t is c1;
+      is_add_implied_pos t is c2;  
   | C.ObjectSomeValuesFrom (ope, ce) ->
       let ar, ar_dir = Brole.to_elt ope in
       (* create a fresh edge for the successor *)
       let ed = init_fresh_edge t is ce in
       (* add role [op] to the edge *)
       ed_add_role t ed ar ar_dir;
-  (* add [ce] to the root of [ed] *)
-  (*|      ed_extend_root t index ed (ClassExpression.Set.singleton ce) (ClassExpression.Set.empty);*)
+      (* add [ce] to the root of [ed] *)  
   | _ -> ()   (** to be extended for new constructors *)
 ;;
 
@@ -823,11 +795,9 @@ let process_is_implied_new_neg t index is c =
   let c_cr = I.find_concept_record index c in
   (* checking concept implications *)
   is_union_implied_pos t is c_cr.I.c_impl;
-  (* checking inferences producing conjunctions *)
-  ClassExpression.Map.iter_s (fun _ c -> is_add_implied_neg t is c)
-    c_cr.I.c_conj is.implied;
-  (*|  ClassExpression.HMap.iter_s (fun _ c -> is_add_implied_neg t is c)*)
-  (*|    c_cr.I.c_conja is.implieda;                                     *)
+  (* checking inferences producing conjunctions *)  
+  iter_hm_hs (fun _ c -> is_add_implied_neg t is c)
+    c_cr.I.c_conj is.implied;  
   (* apply propagation rules for roles *)
   is_propagate_backward t is c_cr;
   is_propagate_forward t index is c_cr;
@@ -1024,12 +994,11 @@ let saturate ont =
   let t = t_create (O.total_ClassIRI ont) in
   let index = I.init ont in
   (* Gc.compact (); *)
-  
+	
   if O.has_negative_Thing ont then (
     (* negative top means there could be a global inconsistency *)
-    let top = ClassExpression.cons
-        (ClassExpression.Constructor.Class
-          (Class.cons Class.Constructor.Thing)) in
+    let top = O.cons_ClassExpression ont
+        (ClassExpression.Constructor.Class Class.Constructor.Thing) in
     t.top <- Some top;
     let is = rt_cons t (ClassExpression.Set.singleton top) ClassExpression.Set.empty
     in process_is t index is;
@@ -1038,14 +1007,14 @@ let saturate ont =
     PB.step ();
   );
   O.iter_record_Class ( fun ac _ ->
-          let c = ClassExpression.cons (ClassExpression.Constructor.Class ac) in
+          let c = O.cons_ClassExpression ont (ClassExpression.Constructor.Class ac) in
           let _ = rt_cons t (ClassExpression.Set.singleton c) ClassExpression.Set.empty in
           (*|          is.required <- true;*)
           process_t t index;
           (* incrementing the progress bar *)
           PB.step ();
     ) ont;
-  (* print_live_statistics (); *)
+(*| print_live_statistics ();*)
   (*|  HI.print_stats ();*)
   (*|  HE.print_stats ();*)
   (* Gc.compact (); *) (* <- slow but useful in the long run *)

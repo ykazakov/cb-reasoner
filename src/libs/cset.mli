@@ -81,7 +81,9 @@ module type S = sig
   val partition: (elt -> bool) -> t -> t * t
   val cardinal: t -> int
   val elements: t -> elt list
-  val choose: t -> elt
+  val min_elt: t -> elt
+  val max_elt: t -> elt
+  val choose: t -> elt  
   val equal: t -> t -> bool
   val compare: t -> t -> int
   val hash_param: int -> t -> int

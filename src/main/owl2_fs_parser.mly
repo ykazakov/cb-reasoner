@@ -6,11 +6,12 @@ the specification; the symbol "-" is also replaced with "_". */
 
 %{
 
-open Owl2 
-open Consed.T
+open Owl2
 
 (* abbreviations for commonly used modules *)
 module O = Ontology
+module IRI = IRI.Constructor
+module NID = NodeID.Constructor
 module D = Datatype.Constructor
 module CF = ConstrainingFacet.Constructor
 module OP = ObjectProperty.Constructor 
@@ -34,16 +35,18 @@ module AV = AnnotationValue.Constructor
 module AN = Annotation.Constructor
 module AA = AnnotationAxiom.Constructor
 
-let rec expand_ObjectIntersectionOf l =
-  let c_set = ref Cset.empty in
-  List.iter (fun c -> 
-    match c.data with
-      | CE.ObjectIntersectionOf c_set1 ->
-          c_set := Cset.union c_set1 !c_set
-       | _ -> c_set := Cset.add c !c_set
-     ) l;
-  !c_set
-;;
+(* temporary variables to track the polarity *)
+let pol = ref Polarity.Both
+(* for constructors with both polarities such as ObjectExactCardinality *)
+let pol_save = ref Polarity.Both 
+let pol_nesting = ref 0
+
+(* the variable to store the ontology *)
+let ont = ref None
+
+let o () = match !ont with
+  | Some ont -> ont
+  | None -> invalid_arg "owl2_fs_parser.o"
 
 %}
 
@@ -67,7 +70,7 @@ let rec expand_ObjectIntersectionOf l =
 /* Integers, Characters, Strings, Language Tags, and Node IDs */
 %token <int> NonNegativeInteger 
 %token <string> QuotedString 
-%token <string> NodeID
+%token Underscore Hash
 
 /* entities and individuals */ 
 %token Class Datatype ObjectProperty DataProperty AnnotationProperty NamedIndividual DoubleSuperscript At
@@ -107,8 +110,10 @@ let rec expand_ObjectIntersectionOf l =
 /* annotations */  
 %token Annotation AnnotationAssertion SubAnnotationPropertyOf AnnotationPropertyDomain AnnotationPropertyRange
 
-/* identifiers */
+/* IRIs, NodeIDs */
 %token <string> Identifier
+%token <string> NodeID
+%token <string> FullIRI
 
 /* comments */
 %token Ignore
@@ -116,11 +121,18 @@ let rec expand_ObjectIntersectionOf l =
 /* eof */
 %token EOF
 
+/* initialization */
+%token <Ontology.t> Init
+
 /**==========================================================================================**/
 
-%start owl_ontologyDocument
-%type <Ontology.t> owl_ontologyDocument
+%start entry
+%type <unit> entry
 %%
+
+/* Initializing Ontology */
+entry: init owl_ontologyDocument { $1; $2 }
+init: Init { ont := Some $1 }
 
 /* 2 Preliminary Definitions */
 
@@ -130,21 +142,17 @@ owl_nonNegativeInteger: NonNegativeInteger { $1 }
 owl_quotedString: QuotedString             { $1 }
 owl_languageTag:    /* specified in BCP 47 [BCP 47] */
   | At Identifier                          { $2 }
-owl_nodeID: NodeID                         { $1 }
+owl_nodeID: NodeID                         { O.cons_NodeID (o()) (NID.NodeID $1) } /* specified in [RDF Test Cases] */
 
 
 /* 2.3 IRIs */
 
-owl_fullIRI:       /* defined in [RFC3987] */
-  | LeftAngle Identifier RightAngle  { "<" ^ $2 ^ ">" }
-owl_prefixName:         /* a finite sequence of characters matching the as PNAME_NS production of [SPARQL] */
-  | Identifier                 { $1 }
-owl_abbreviatedIRI:     /* a finite sequence of characters matching the PNAME_LN production of [SPARQL] */
-  | Identifier                 { $1 }  
-owl_IRI: 
-  | owl_fullIRI               { $1 } 
-  | owl_abbreviatedIRI         { $1 }
- 
+owl_fullIRI: FullIRI                     { $1 }  
+owl_prefixName: Identifier               { $1 }
+owl_IRI: owl_IRI_                        { O.cons_IRI (o()) (IRI.IRI $1) }
+owl_IRI_: 
+  | owl_fullIRI   { $1 }
+  | Identifier    { $1 }                      
  
 /* 3 Ontologies */
 
@@ -170,8 +178,8 @@ owl_ontologyIRI: owl_IRI      {}
 owl_versionIRI: owl_IRI       {}
 owl_directlyImportsDocuments: /* empty */      {}
   | owl_directlyImportsDocuments Import LeftParen owl_IRI RightParen        {}
-owl_axioms: /* empty */       { O.create () }  
-  | owl_axioms owl_Axiom      { let ont = $1 in $2 ont; ont }
+owl_axioms: /* empty */       { }  
+  | owl_axioms owl_Axiom      { $1; $2 }
 
 /* 4 Datatype Maps */
 
@@ -233,14 +241,14 @@ owl_DTXMLs:
 /* 5 Entities and Literals */
 
 /* 5.1 Classes */
-owl_Class: owl_Class_        { Class.cons $1 }
+owl_Class: owl_Class_        { $1 }
 owl_Class_:  
   | owl_IRI                  { C.IRI $1 }  
   | Owl_Thing                { C.Thing }
   | Owl_Nothing              { C.Nothing }
 
 /* 5.2 Datatypes */
-owl_Datatype: owl_Datatype_     { Datatype.cons $1 }
+owl_Datatype: owl_Datatype_     { $1 }
 owl_Datatype_:
   | owl_IRI                     { D.IRI $1 }  
   | Rdfs_Literal                { D.Rdfs_Literal }
@@ -254,21 +262,21 @@ owl_Datatype_:
   | owl_DTXMLs                  { $1 }
   
 /* 5.3 Object Properties */   
-owl_ObjectProperty: owl_ObjectProperty_ { ObjectProperty.cons $1 }
+owl_ObjectProperty: owl_ObjectProperty_ { O.cons_ObjectProperty (o()) $1 }
 owl_ObjectProperty_: 
   | owl_IRI                  { OP.IRI $1 }
   | Owl_topObjectProperty    { OP.TopObjectProperty }
   | Owl_bottomObjectProperty { OP.BottomObjectProperty }
 
 /* 5.4 Data Properties */
-owl_DataProperty: owl_DataProperty_ { DataProperty.cons $1 }
+owl_DataProperty: owl_DataProperty_ { $1 }
 owl_DataProperty_:
   | owl_IRI                  { DP.IRI $1 }
   | Owl_topDataProperty      { DP.TopDataProperty }
   | Owl_bottomDataProperty   { DP.BottomDataProperty }
 
 /* 5.5 Annotation Properties */
-owl_AnnotationProperty: owl_AnnotationProperty_ { AnnotationProperty.cons $1 }
+owl_AnnotationProperty: owl_AnnotationProperty_ { $1 }
 owl_AnnotationProperty_:
   | owl_IRI                     { AP.IRI $1 }
   | Rdfs_label                  { AP.Rdfs_label }
@@ -283,7 +291,7 @@ owl_AnnotationProperty_:
 /* 5.6 Individuals */
 owl_Individuals: /* empty */       { [] }
   | owl_Individuals owl_Individual { $2 :: $1 }
-owl_Individual: owl_Individual_   { Individual.cons $1 } 
+owl_Individual: owl_Individual_   { $1 } 
 owl_Individual_:
   | owl_NamedIndividual           { $1 } 
   | owl_AnonymousIndividual       { $1 }
@@ -297,7 +305,7 @@ owl_AnonymousIndividual: owl_nodeID  { I.AnonymousIndividual $1 }
 /* 5.7 Literals */
 owl_Literals: /* empty */            { [] }  
   | owl_Literals owl_Literal         { $2 :: $1 }
-owl_Literal: owl_Literal_            { Literal.cons $1 }
+owl_Literal: owl_Literal_            { O.cons_Literal (o()) $1 }
 owl_Literal_:
   | owl_typedLiteral                 { $1 }
   | owl_stringLiteralNoLanguage      { $1 }
@@ -324,7 +332,7 @@ owl_Entity:
 /* 6 Property Expressions */
 owl_ObjectPropertyExpressions:  /* empty */                 { [] }
   | owl_ObjectPropertyExpressions owl_ObjectPropertyExpression { $2 :: $1 }
-owl_ObjectPropertyExpression: owl_ObjectPropertyExpression_ { ObjectPropertyExpression.cons $1}
+owl_ObjectPropertyExpression: owl_ObjectPropertyExpression_ { O.cons_ObjectPropertyExpression (o()) $1}
 owl_ObjectPropertyExpression_:
   | owl_ObjectProperty                 { OPE.ObjectProperty $1 }  
   | owl_InverseObjectProperty          { $1 }
@@ -336,14 +344,14 @@ owl_InverseObjectProperty:
 /* 6.2 Data Property Expressions */
 owl_DataPropertyExpressions: /* empty */                   { [] }  
   | owl_DataPropertyExpressions owl_DataPropertyExpression { $2 :: $1 }
-owl_DataPropertyExpression: owl_DataPropertyExpression_    { DataPropertyExpression.cons $1 }
+owl_DataPropertyExpression: owl_DataPropertyExpression_    { O.cons_DataPropertyExpression (o()) $1 }
 owl_DataPropertyExpression_:
   | owl_DataProperty                                       { DPE.DataProperty $1 }  
 
 /* 7 Data Ranges */
 owl_DataRanges:  /* empty */          { [] }
   | owl_DataRanges owl_DataRange      { $2 :: $1 }
-owl_DataRange: owl_DataRange_         { DataRange.cons $1 }
+owl_DataRange: owl_DataRange_         { O.cons_DataRange (o()) $1 }
 owl_DataRange_:
   | owl_Datatype                      { DR.Datatype $1 }
   | owl_DataIntersectionOf            { $1 }
@@ -354,13 +362,11 @@ owl_DataRange_:
 
 /* 7.1 Intersection of Data Ranges */
 owl_DataIntersectionOf:
-  | DataIntersectionOf LeftParen owl_DataRange owl_DataRange owl_DataRanges RightParen 
-    { DR.DataIntersectionOf (List.fold_left (fun s dr  -> Cset.add dr s) Cset.empty ($3 :: $4 :: $5)) }
+  | DataIntersectionOf LeftParen owl_DataRange owl_DataRange owl_DataRanges RightParen { DR.DataIntersectionOf ($3 :: $4 :: $5) }
 
 /* 7.2 Union of Data Ranges */
 owl_DataUnionOf:
-  | DataUnionOf LeftParen owl_DataRange owl_DataRange owl_DataRanges RightParen  
-    { DR.DataUnionOf (List.fold_left (fun s dr  -> Cset.add dr s) Cset.empty ($3 :: $4 :: $5)) }
+  | DataUnionOf LeftParen owl_DataRange owl_DataRange owl_DataRanges RightParen { DR.DataUnionOf ($3 :: $4 :: $5) }
 
 /* 7.3 Complement of Data Ranges */
 owl_DataComplementOf:
@@ -368,8 +374,7 @@ owl_DataComplementOf:
 
 /* 7.4 Enumeration of Literals */
 owl_DataOneOf:
-  | DataOneOf LeftParen owl_Literal owl_Literals RightParen 
-    { DR.DataOneOf (List.fold_left (fun s dr  -> Cset.add dr s) Cset.empty ($3 :: $4)) }
+  | DataOneOf LeftParen owl_Literal owl_Literals RightParen { DR.DataOneOf ($3 :: $4) }
 
 /* 7.5 Datatype Restrictions */
 owl_DatatypeRestriction: 
@@ -378,7 +383,7 @@ owl_DatatypeRestriction:
     { DR.DatatypeRestriction ($3, ($4, $5) :: $6 ) }
 owl_constrainingFacet_restrictionValues:  /* empty */                                  { [] }  
   | owl_constrainingFacet_restrictionValues owl_constrainingFacet owl_restrictionValue { ($2, $3) :: $1 }
-owl_constrainingFacet: owl_constrainingFacet_ { ConstrainingFacet.cons $1 }
+owl_constrainingFacet: owl_constrainingFacet_ { $1 }
 owl_constrainingFacet_:
   | owl_IRI          { CF.IRI $1 }
   | Xsd_minInclusive { CF.Xsd_minInclusive }
@@ -393,151 +398,168 @@ owl_constrainingFacet_:
 owl_restrictionValue: owl_Literal { $1 }
 
 /* 8 Class Expressions */
-owl_ClassExpressions:  /* empty */         { [] }
+owl_ClassExpressions:  /* empty */            { [] }
   | owl_ClassExpressions owl_ClassExpression  { $2 :: $1 }
-owl_ClassExpression: owl_ClassExpression_ { ClassExpression.cons $1 }
+owl_ClassExpression: owl_ClassExpression_ { O.cons_ClassExpression (o()) $1 }
 owl_ClassExpression_:  
-  | owl_Class                   { (CE.Class $1) }  
-  | owl_ObjectIntersectionOf    { $1 }
-  | owl_ObjectUnionOf           { $1 }
-  | owl_ObjectComplementOf      { $1 }
-  | owl_ObjectOneOf             { $1 }
-  | owl_ObjectSomeValuesFrom    { $1 }
-  | owl_ObjectAllValuesFrom     { $1 }
-  | owl_ObjectHasValue          { $1 }
-  | owl_ObjectHasSelf           { $1 }
-  | owl_ObjectMinCardinality    { $1 }
-  | owl_ObjectMaxCardinality    { $1 }
-  | owl_ObjectExactCardinality  { $1 }
-  | owl_DataSomeValuesFrom      { $1 }
-  | owl_DataAllValuesFrom       { $1 }
-  | owl_DataHasValue            { $1 }
-  | owl_DataMinCardinality      { $1 }
-  | owl_DataMaxCardinality      { $1 }
-  | owl_DataExactCardinality    { $1 }
+  | owl_Class                    { (CE.Class $1) }  
+  | owl_ObjectIntersectionOf_    { $1 }
+  | owl_ObjectUnionOf_           { $1 }
+  | owl_ObjectComplementOf_      { $1 }
+  | owl_ObjectOneOf_             { $1 }
+  | owl_ObjectSomeValuesFrom_    { $1 }
+  | owl_ObjectAllValuesFrom_     { $1 }
+  | owl_ObjectHasValue_          { $1 }
+  | owl_ObjectHasSelf_           { $1 }
+  | owl_ObjectMinCardinality_    { $1 }
+  | owl_ObjectMaxCardinality_    { $1 }
+  | owl_ObjectExactCardinality_  { $1 }
+  | owl_DataSomeValuesFrom_      { $1 }
+  | owl_DataAllValuesFrom_       { $1 }
+  | owl_DataHasValue_            { $1 }
+  | owl_DataMinCardinality_      { $1 }
+  | owl_DataMaxCardinality_      { $1 }
+  | owl_DataExactCardinality_    { $1 }
 
 /* 8.1 Propositional Connectives and Enumeration of Individuals */
 
 /* 8.1.1 Intersection of Class Expressions */
-owl_ObjectIntersectionOf: 
-  | ObjectIntersectionOf LeftParen owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
-    { CE.ObjectIntersectionOf (expand_ObjectIntersectionOf ($3 :: $4 :: $5)) }
+owl_ObjectIntersectionOf_: ObjectIntersectionOf LeftParen owl_ClassExpression owl_ObjectIntersectionOfb RightParen 
+  { if ClassExpression.compare $3 $4 < 0 then CE.ObjectIntersectionOf ($3, $4) else CE.ObjectIntersectionOf ($4, $3) }
+/* fix me */
+owl_ObjectIntersectionOfb:  
+  | owl_ClassExpression        { $1 }
+  | owl_ObjectIntersectionOfb_ { O.cons_ClassExpression (o()) $1 } 
+owl_ObjectIntersectionOfb_:      
+  | owl_ClassExpression owl_ObjectIntersectionOfb 
+  { if ClassExpression.compare $1 $2 < 0 then CE.ObjectIntersectionOf ($1, $2) else CE.ObjectIntersectionOf ($2, $1) }    
 
 /* 8.1.2 Union of Class Expressions */
-owl_ObjectUnionOf:
-  | ObjectUnionOf LeftParen owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
-    { CE.ObjectUnionOf (List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty ($3 :: $4 :: $5)) }
+owl_ObjectUnionOf_: ObjectUnionOf LeftParen owl_ClassExpression owl_ObjectUnionOfb RightParen 
+  { if ClassExpression.compare $3 $4 < 0 then CE.ObjectUnionOf ($3, $4) else CE.ObjectUnionOf ($4, $3) }
+/* fix me */
+owl_ObjectUnionOfb:  
+  | owl_ClassExpression { $1 }
+  | owl_ObjectUnionOfb_ { O.cons_ClassExpression (o()) $1 } 
+owl_ObjectUnionOfb_:      
+  | owl_ClassExpression owl_ObjectUnionOfb
+  { if ClassExpression.compare $1 $2 < 0 then CE.ObjectUnionOf ($1, $2) else CE.ObjectUnionOf ($2, $1) }
  
 /* 8.1.3 Complement of Class Expressions */
-owl_ObjectComplementOf:
-  | ObjectComplementOf LeftParen owl_ClassExpression RightParen 
-    { CE.ObjectComplementOf ($3) }
+owl_ObjectComplementOf_:
+  | pol_ObjectComplementOf LeftParen owl_ClassExpression RightParen 
+    { pol := Polarity.inverse !pol; CE.ObjectComplementOf ($3) }
+pol_ObjectComplementOf: ObjectComplementOf { pol := Polarity.inverse !pol }
 
 /* 8.1.4 Enumeration of Individuals */
-owl_ObjectOneOf: 
+owl_ObjectOneOf_: 
   | ObjectOneOf LeftParen owl_Individual owl_Individuals RightParen 
-    { CE.ObjectOneOf (List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty ($3 :: $4)) }
+    { CE.ObjectOneOf ($3 :: $4) }
 
 /* 8.2 Object Property Restrictions */
 
 /* 8.2.1 Existential Quantification */
-owl_ObjectSomeValuesFrom:
+owl_ObjectSomeValuesFrom_:
   | ObjectSomeValuesFrom LeftParen owl_ObjectPropertyExpression owl_ClassExpression RightParen 
     { CE.ObjectSomeValuesFrom ($3, $4) }
  
 /* 8.2.2 Universal Quantification */
-owl_ObjectAllValuesFrom:
+owl_ObjectAllValuesFrom_:
   | ObjectAllValuesFrom LeftParen owl_ObjectPropertyExpression owl_ClassExpression RightParen 
     { CE.ObjectAllValuesFrom ($3, $4) }
 
 /* 8.2.3 Individual Value Restriction */
-owl_ObjectHasValue:
+owl_ObjectHasValue_:
   | ObjectHasValue LeftParen owl_ObjectPropertyExpression owl_Individual RightParen 
     { CE.ObjectHasValue ($3, $4) }
 
 /* 8.2.4 Self-Restriction */
-owl_ObjectHasSelf: 
+owl_ObjectHasSelf_: 
   | ObjectHasSelf LeftParen owl_ObjectPropertyExpression RightParen  
     { CE.ObjectHasSelf $3 }
 
 /* 8.3 Object Property Cardinality Restrictions */
 
 /* 8.3.1 Minimum Cardinality */
-owl_ObjectMinCardinality:
+owl_ObjectMinCardinality_:
   | ObjectMinCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen  
     { CE.ObjectMinCardinality ($3, $4, None) }
   | ObjectMinCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
     { CE.ObjectMinCardinality ($3, $4, Some $5) }
 
 /* 8.3.2 Maximum Cardinality */
-owl_ObjectMaxCardinality:
-  | ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
-    { CE.ObjectMaxCardinality ($3, $4, None) }
-  | ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { CE.ObjectMaxCardinality ($3, $4, Some $5) }
+owl_ObjectMaxCardinality_:
+  | pol_ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
+    { pol := Polarity.inverse !pol; CE.ObjectMaxCardinality ($3, $4, None) }
+  | pol_ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { pol := Polarity.inverse !pol; CE.ObjectMaxCardinality ($3, $4, Some $5) }
+pol_ObjectMaxCardinality: ObjectMaxCardinality { pol := Polarity.inverse !pol }
 
 /* 8.3.3 Exact Cardinality */
-owl_ObjectExactCardinality:
-  | ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
-    { CE.ObjectExactCardinality ($3, $4, None) }
-  | ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { CE.ObjectExactCardinality ($3, $4, Some $5) }
+owl_ObjectExactCardinality_:
+  | pol_ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
+    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CE.ObjectExactCardinality ($3, $4, None) }
+  | pol_ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CE.ObjectExactCardinality ($3, $4, Some $5) }
+pol_ObjectExactCardinality: ObjectExactCardinality { if !pol_nesting = 0 then pol_save := !pol; incr pol_nesting }
 
 /* 8.4 Data Property Restrictions */
 
 /* 8.4.1 Existential Quantification */
-owl_DataSomeValuesFrom:
+owl_DataSomeValuesFrom_:
   | DataSomeValuesFrom LeftParen owl_DataPropertyExpression owl_DataPropertyExpressions owl_DataRange RightParen 
     { CE.DataSomeValuesFrom ($3 :: $4,  $5) }
 
 /* 8.4.2 Universal Quantification */
-owl_DataAllValuesFrom:
+owl_DataAllValuesFrom_:
   | DataAllValuesFrom LeftParen owl_DataPropertyExpression owl_DataPropertyExpressions owl_DataRange RightParen 
     { CE.DataAllValuesFrom ($3 :: $4,  $5) }
 
 /* 8.4.3 Literal Value Restriction */
-owl_DataHasValue:
+owl_DataHasValue_:
   | DataHasValue LeftParen owl_DataPropertyExpression owl_Literal RightParen 
     { CE.DataHasValue ($3, $4) }
 
 /* 8.5 Data Property Cardinality Restrictions */
 
 /* 8.5.1 Minimum Cardinality */
-owl_DataMinCardinality:
+owl_DataMinCardinality_:
   | DataMinCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
     { CE.DataMinCardinality ($3, $4, None) }
   | DataMinCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
     { CE.DataMinCardinality ($3, $4, Some $5) }
 
 /* 8.5.2 Maximum Cardinality */
-owl_DataMaxCardinality:
-  | DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
-    { CE.DataMaxCardinality ($3, $4, None) }
-  | DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
-    { CE.DataMaxCardinality ($3, $4, Some $5) } 
+owl_DataMaxCardinality_:
+  | pol_DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
+    { pol := Polarity.inverse !pol; CE.DataMaxCardinality ($3, $4, None) }
+  | pol_DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
+    { pol := Polarity.inverse !pol; CE.DataMaxCardinality ($3, $4, Some $5) } 
+pol_DataMaxCardinality: DataMaxCardinality { pol := Polarity.inverse !pol }
 
 /* 8.5.3 Exact Cardinality */
-owl_DataExactCardinality:
-  | DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
-    { CE.DataExactCardinality ($3, $4, None) }
-  | DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
-    { CE.DataExactCardinality ($3, $4, Some $5) }
+owl_DataExactCardinality_:
+  | pol_DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
+    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CE.DataExactCardinality ($3, $4, None) }
+  | pol_DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
+    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CE.DataExactCardinality ($3, $4, Some $5) }
+pol_DataExactCardinality: DataExactCardinality { if !pol_nesting = 0 then pol_save := !pol; incr pol_nesting }
 
 /* 9 Axioms */
 owl_Axiom:
-  | owl_Declaration         { fun ont -> () }
-  | owl_ClassAxiom          { fun ont -> O.add_ClassExpressionAxiom ont $1 }
-  | owl_ObjectPropertyAxiom { fun ont -> O.add_ObjectPropertyAxiom ont $1 }
-  | owl_DataPropertyAxiom   { fun ont -> () }
-  | owl_DatatypeDefinition  { fun ont -> () }
-  | owl_HasKey              { fun ont -> () }
-  | owl_Assertion           { fun ont -> O.add_Assertion ont $1 }
-  | owl_AnnotationAxiom     { fun ont -> ()}
+  | owl_Declaration         { }
+  | owl_ClassAxiom          { O.add_ClassExpressionAxiom (o()) $1 }
+  | owl_ObjectPropertyAxiom { O.add_ObjectPropertyAxiom (o()) $1 }
+  | owl_DataPropertyAxiom   { let _ = $1 in () }
+  | owl_DatatypeDefinition  { let _ = $1 in () }
+  | owl_HasKey              { let _ = $1 in () }
+  | owl_Assertion           { O.add_Assertion (o()) $1 }
+  | owl_AnnotationAxiom     { }
 owl_axiomAnnotations: /* empty */    {}
   | owl_axiomAnnotations owl_Annotation {}
 
 /* 9.1 Class Expression Axioms */
-owl_ClassAxiom: owl_ClassAxiom_ { ClassExpressionAxiom.cons $1 }
+owl_ClassAxiom: owl_ClassAxiom_ { O.cons_ClassExpressionAxiom (o()) $1 }
 owl_ClassAxiom_:
   | owl_SubClassOf        { $1 }
   | owl_EquivalentClasses { $1 }
@@ -546,30 +568,33 @@ owl_ClassAxiom_:
 
 /* 9.1.1 Subclass Axioms */
 owl_SubClassOf:
-  | SubClassOf LeftParen owl_axiomAnnotations owl_subClassExpression owl_superClassExpression RightParen 
-    { CEA.SubClassOf ($4, $5) }
-owl_subClassExpression: owl_ClassExpression   { $1 }
+  | pol_SubClassOf LeftParen owl_axiomAnnotations owl_subClassExpression owl_superClassExpression RightParen 
+    { pol := Polarity.Both; CEA.SubClassOf ($4, $5) }
+pol_SubClassOf: SubClassOf { pol := Polarity.Negative }    
+owl_subClassExpression: owl_ClassExpression   { pol := Polarity.Positive; $1 }
 owl_superClassExpression: owl_ClassExpression { $1 }
 
 /* 9.1.2 Equivalent Classes */
 owl_EquivalentClasses:
   | EquivalentClasses LeftParen owl_axiomAnnotations owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
-    { CEA.EquivalentClasses (List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty ($4 :: $5 :: $6)) }
+    { CEA.EquivalentClasses ($4 :: $5 :: $6) }
     
 /* 9.1.3 Disjoint Classes */
 owl_DisjointClasses:
-  | DisjointClasses LeftParen owl_axiomAnnotations owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
-    { CEA.DisjointClasses (List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty ($4 :: $5 :: $6)) }
+  | pol_DisjointClasses LeftParen owl_axiomAnnotations owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
+    { pol := Polarity.Both; CEA.DisjointClasses ($4 :: $5 :: $6) }
+pol_DisjointClasses: DisjointClasses { pol := Polarity.Negative }
     
+            
 /* 9.1.4 Disjoint Union of Class Expressions */
 owl_DisjointUnion:
   | DisjointUnion LeftParen owl_axiomAnnotations owl_Class owl_disjointClassExpressions RightParen 
-    { CEA.DisjointUnion ($4, List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty $5) }
+    { CEA.DisjointUnion ($4, $5) }
 owl_disjointClassExpressions: /* empty */ { [] }
   | owl_ClassExpression owl_ClassExpression owl_ClassExpressions { $1 :: $2 :: $3 }
 
 /* 9.2 Object Property Axioms */
-owl_ObjectPropertyAxiom: owl_ObjectPropertyAxiom_ { ObjectPropertyAxiom.cons $1 }
+owl_ObjectPropertyAxiom: owl_ObjectPropertyAxiom_ { O.cons_ObjectPropertyAxiom (o()) $1 }
 owl_ObjectPropertyAxiom_:
   | owl_SubObjectPropertyOf             { $1 }
   | owl_EquivalentObjectProperties      { $1 }
@@ -601,13 +626,13 @@ owl_superObjectPropertyExpression: owl_ObjectPropertyExpression { $1 }
 owl_EquivalentObjectProperties:
   | EquivalentObjectProperties LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ObjectPropertyExpression  
     owl_ObjectPropertyExpressions RightParen 
-    { OPA.EquivalentObjectProperties (List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty ($4 :: $5 :: $6)) }
+    { OPA.EquivalentObjectProperties ($4 :: $5 :: $6) }
 
 /* 9.2.3 Disjoint Object Properties */
 owl_DisjointObjectProperties:
   | DisjointObjectProperties LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ObjectPropertyExpression
     owl_ObjectPropertyExpressions RightParen 
-    { OPA.DisjointObjectProperties (List.fold_left (fun s ce  -> Cset.add ce s) Cset.empty ($4 :: $5 :: $6)) }
+    { OPA.DisjointObjectProperties ($4 :: $5 :: $6) }
 
 /* 9.2.4 Inverse Object Properties */
 owl_InverseObjectProperties:
@@ -616,13 +641,15 @@ owl_InverseObjectProperties:
 
 /* 9.2.5 Object Property Domain */
 owl_ObjectPropertyDomain: 
-  | ObjectPropertyDomain LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { OPA.ObjectPropertyDomain ($4, $5) }
+  | pol_ObjectPropertyDomain LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { pol := Polarity.Both; OPA.ObjectPropertyDomain ($4, $5) }
+pol_ObjectPropertyDomain: ObjectPropertyDomain { pol := Polarity.Positive }
 
 /* 9.2.6 Object Property Range */
 owl_ObjectPropertyRange: 
-  | ObjectPropertyRange LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { OPA.ObjectPropertyRange ($4, $5) }
+  | pol_ObjectPropertyRange LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { pol := Polarity.Both; OPA.ObjectPropertyRange ($4, $5) }
+pol_ObjectPropertyRange: ObjectPropertyRange { pol := Polarity.Positive }
 
 /* 9.2.7 Functional Object Properties */
 owl_FunctionalObjectProperty: 
@@ -660,7 +687,7 @@ owl_TransitiveObjectProperty:
     { OPA.TransitiveObjectProperty ($4) }
 
 /* 9.3 Data Property Axioms */
-owl_DataPropertyAxiom: owl_DataPropertyAxiom_ { DataPropertyAxiom.cons $1 }
+owl_DataPropertyAxiom: owl_DataPropertyAxiom_ { O.cons_DataPropertyAxiom (o()) $1 }
 owl_DataPropertyAxiom_:
   | owl_SubDataPropertyOf        { $1 }
   | owl_EquivalentDataProperties { $1 }
@@ -680,18 +707,19 @@ owl_superDataPropertyExpression: owl_DataPropertyExpression { $1 }
 owl_EquivalentDataProperties:
   | EquivalentDataProperties LeftParen owl_axiomAnnotations owl_DataPropertyExpression owl_DataPropertyExpression 
     owl_DataPropertyExpressions RightParen 
-    { DPA.EquivalentDataProperties (List.fold_left (fun s dpe  -> Cset.add dpe s) Cset.empty ($4 :: $5 :: $6)) }
+    { DPA.EquivalentDataProperties ($4 :: $5 :: $6) }
 
 /* 9.3.3 Disjoint Data Properties */
 owl_DisjointDataProperties:
   | DisjointDataProperties LeftParen owl_axiomAnnotations owl_DataPropertyExpression owl_DataPropertyExpression 
     owl_DataPropertyExpressions RightParen 
-    { DPA.EquivalentDataProperties (List.fold_left (fun s dpe  -> Cset.add dpe s) Cset.empty ($4 :: $5 :: $6)) }
+    { DPA.EquivalentDataProperties ($4 :: $5 :: $6) }
 
 /* 9.3.4 Data Property Domain */
 owl_DataPropertyDomain: 
-  | DataPropertyDomain LeftParen owl_axiomAnnotations owl_DataPropertyExpression owl_ClassExpression RightParen 
-    { DPA.DataPropertyDomain ($4, $5) }
+  | pol_DataPropertyDomain LeftParen owl_axiomAnnotations owl_DataPropertyExpression owl_ClassExpression RightParen 
+    { pol := Polarity.Both; DPA.DataPropertyDomain ($4, $5) }
+pol_DataPropertyDomain: DataPropertyDomain { pol := Polarity.Positive }
 
 /* 9.3.5 Data Property Range */
 owl_DataPropertyRange: 
@@ -704,18 +732,21 @@ owl_FunctionalDataProperty:
     { DPA.FunctionalDataProperty ($4) }
 
 /* 9.4 Datatype Definitions */
-owl_DatatypeDefinition: owl_DatatypeDefinition_ { DatatypeDefinition.cons $1 }
+owl_DatatypeDefinition: owl_DatatypeDefinition_ { O.cons_DatatypeDefinition (o()) $1 }
 owl_DatatypeDefinition_: 
   | DatatypeDefinition LeftParen owl_axiomAnnotations owl_Datatype owl_DataRange RightParen 
     { DD.DatatypeDefinition ($4, $5) }
 
 /* 9.5 Keys */
-owl_HasKey:
-  | HasKey LeftParen owl_axiomAnnotations owl_ClassExpression 
-    LeftParen owl_ObjectPropertyExpressions RightParen LeftParen owl_DataPropertyExpression RightParen {}
+owl_HasKey: owl_HasKey_ { O.cons_Key (o()) $1 }
+owl_HasKey_:
+  | pol_HasKey LeftParen owl_axiomAnnotations owl_ClassExpression 
+    LeftParen owl_ObjectPropertyExpressions RightParen LeftParen owl_DataPropertyExpressions RightParen 
+    { pol := Polarity.Both; K.HasKey ($4, $6, $9) }
+pol_HasKey: HasKey { pol := Polarity.Negative }
 
 /* 9.6 Assertions */
-owl_Assertion: owl_Assertion_           { Assertion.cons $1 }
+owl_Assertion: owl_Assertion_           { O.cons_Assertion (o()) $1 }
 owl_Assertion_:
   | owl_SameIndividual                  { $1 }
   | owl_DifferentIndividuals            { $1 }
@@ -731,17 +762,18 @@ owl_targetValue: owl_Literal { $1 }
 /* 9.6.1 Individual Equality */
 owl_SameIndividual: 
   | SameIndividual LeftParen owl_axiomAnnotations owl_Individual owl_Individual owl_Individuals RightParen 
-    { A.SameIndividual (List.fold_left (fun s i  -> Cset.add i s) Cset.empty ($4 :: $5 :: $6)) }
+    { A.SameIndividual ($4 :: $5 :: $6) }
 
 /* 9.6.2 Individual Inequality */
 owl_DifferentIndividuals: 
   | DifferentIndividuals LeftParen owl_axiomAnnotations owl_Individual owl_Individual owl_Individuals RightParen 
-    { A.DifferentIndividuals (List.fold_left (fun s i  -> Cset.add i s) Cset.empty ($4 :: $5 :: $6)) }
+    { A.DifferentIndividuals ($4 :: $5 :: $6) }
 
 /* 9.6.3 Class Assertions */
 owl_ClassAssertion: 
-  | ClassAssertion LeftParen owl_axiomAnnotations owl_ClassExpression owl_Individual RightParen 
+  | pol_ClassAssertion LeftParen owl_axiomAnnotations owl_ClassExpression owl_Individual RightParen 
     { A.ClassAssertion ($4, $5) }
+pol_ClassAssertion: ClassAssertion { pol := Polarity.Positive }
 
 /* 9.6.4 Positive Object Property Assertions */
 owl_ObjectPropertyAssertion: 

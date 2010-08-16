@@ -1,5 +1,7 @@
 (* Weak hash maps; inspired by Weak module from the standard library *)
 
+open CommonTypes
+
 module T = struct
   type 'a consed = {
     data : 'a;
@@ -7,7 +9,22 @@ module T = struct
   }
 end
 
+module type OHT = sig
+  open T
+  val compare : 'a consed -> 'a consed -> int
+  val equal : 'a consed -> 'a consed -> bool
+  val hash : 'a consed -> int
+end
+
+module OHT = struct
+  open T
+  let compare x y = (x.tag - y.tag)
+  let equal x y = (x == y)
+  let hash x = x.tag
+end
+
 open T
+include OHT
 
 type 'a t =
   { mutable size: int;                (* number of elements *)
@@ -58,7 +75,7 @@ let resize h =
   end
 
 let sweep h =
-  let size = Array.length h.index in  
+  let size = Array.length h.index in
   let rec find_free i =
     if i = h.rover || h.hashes.(i) == (- 1) then i
     else find_free ((i + 1) mod size)
@@ -103,45 +120,71 @@ module type HashedType = sig
 end
 
 module type S = sig
-  type elt
-  val cons: elt -> elt consed
+  type t
+  type key
+  val create: int -> t
+  val cons: t -> key -> key consed
+  val iter: (key consed -> unit) -> t -> unit
 end
 
-module Make(H: HashedType): (S with type elt = H.t) =
+module Make (H: HashedType) : (S with type key = H.t) =
 struct
-  type elt = H.t
-  
-  let safehash elt = (H.hash elt) land max_int
-  
-  let (h : H.t consed t) = create 31
-  
-  let cons elt =
-    let hash = safehash elt in
-    let size = Array.length h.index in
-    let rec cons_rec i =
-      if h.hashes.(i) == (- 1) then begin
-        let idx = begin match h.recycle with
-            | [] -> h.size
-            | hd :: tail -> h.recycle <- tail; hd
-          end in
-        let elt_consed = {
-          data = elt;
-          tag = idx
-        } in
-        Weak.set h.content idx (Some elt_consed);
-        h.hashes.(i) <- hash;
-        h.index.(i) <- idx;
-        h.size <- succ h.size;
-        let l = Weak.length h.content in
-        if h.size = l then resize h;
-        sweep h;
-        elt_consed
-      end
-      else if h.hashes.(i) == hash then
-        match Weak.get h.content h.index.(i) with
-        | Some elt_consed when H.equal elt elt_consed.data -> elt_consed
-        | _ -> cons_rec ((i + 1) mod size)
-      else cons_rec ((i + 1) mod size)
-    in
-    cons_rec (hash mod size)
+  module HS = Hashsetlp.Make (struct
+      include H
+      type elt = H.t consed
+      let key x = x.data
+    end)
+  type t = HS.t
+  type key = H.t
+  let create = HS.create
+  let cons t x =
+    try HS.find t x
+    with Not_found ->
+        let y = {
+          data = x;
+          tag = HS.length t
+        }
+        in HS.add t y; y
+  let iter = HS.iter
 end
+
+(** old implementation based on weak hash tables *)
+
+(*|module Make(H: HashedType): (S with type key = H.t) =                   *)
+(*|struct                                                                  *)
+(*|  type key = H.t                                                        *)
+(*|                                                                        *)
+(*|  let safehash key = (H.hash key) land max_int                          *)
+(*|                                                                        *)
+(*|  let (h : H.t consed t) = create 31                                    *)
+(*|                                                                        *)
+(*|  let cons key =                                                        *)
+(*|    let hash = safehash key in                                          *)
+(*|    let size = Array.length h.index in                                  *)
+(*|    let rec cons_rec i =                                                *)
+(*|      if h.hashes.(i) == (- 1) then begin                               *)
+(*|        let idx = begin match h.recycle with                            *)
+(*|            | [] -> h.size                                              *)
+(*|            | hd :: tail -> h.recycle <- tail; hd                       *)
+(*|          end in                                                        *)
+(*|        let key_consed = {                                              *)
+(*|          data = key;                                                   *)
+(*|          tag = idx                                                     *)
+(*|        } in                                                            *)
+(*|        Weak.set h.content idx (Some key_consed);                       *)
+(*|        h.hashes.(i) <- hash;                                           *)
+(*|        h.index.(i) <- idx;                                             *)
+(*|        h.size <- succ h.size;                                          *)
+(*|        let l = Weak.length h.content in                                *)
+(*|        if h.size = l then resize h;                                    *)
+(*|        sweep h;                                                        *)
+(*|        key_consed                                                      *)
+(*|      end                                                               *)
+(*|      else if h.hashes.(i) == hash then                                 *)
+(*|        match Weak.get h.content h.index.(i) with                       *)
+(*|        | Some key_consed when H.equal key key_consed.data -> key_consed*)
+(*|        | _ -> cons_rec ((i + 1) mod size)                              *)
+(*|      else cons_rec ((i + 1) mod size)                                  *)
+(*|    in                                                                  *)
+(*|    cons_rec (hash mod size)                                            *)
+(*|end                                                                     *)

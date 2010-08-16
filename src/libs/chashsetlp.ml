@@ -3,12 +3,18 @@
 (*| [1] Donald E. Knuth, The Art of Computer Programming, Volume 3,        *)
 (*| Sorting and Searching, Second Edition                                  *)
 
+(* hash set on conced values *)
+
+open Consed.T
+
 (* We do dynamic hashing, and resize when the array becomes too long. *)
 
-type 'a hashset =
-  { mutable size: int;          (* number of elements; *)
-    (* if negative the hashset is locked for writing *)
-    mutable data: 'a array; }   (* the elements *)
+type 'a key = 'a consed
+
+type 'a hashset = {
+  mutable size: int;          (* number of elements; *)
+  (* if negative the hashset is locked for writing *)
+  mutable data: 'a key array; }   (* the elements *)
 
 (* Unique blank element of any type. Works by magic! Must be allocated in  *)
 (* heap.                                                                   *)
@@ -41,7 +47,7 @@ let threshold = 100
 
 (* check when hashtable is oversized / undersized *)
 let oversized base size =
-  size = base || size >= max threshold ((75 * base) / 100)
+  size = base || size >= max threshold ((85 * base) / 100)
 let undersized base size =
   size < (base / 3)
 
@@ -67,44 +73,34 @@ let fold f h init =
 
 (* Functorial interface *)
 
-module type HashedType =
-sig
+module type Type = sig
   type t
-  val equal: t -> t -> bool
-  val hash: t -> int
-  type elt
-  val key: elt -> t
 end
 
 module type S =
 sig
   type key
-  type elt
   type t
   exception Locked
   val create: int -> t
   val clear: t -> unit
   val copy: t -> t
-  val add: t -> elt -> unit
-  val replace: t -> elt -> unit
+  val add: t -> key -> unit
   val remove: t -> key -> unit
   val mem : t -> key -> bool
-  val find : t -> key -> elt
-  val find_all : t -> key -> elt list
-  val iter: (elt -> unit) -> t -> unit
-  val fold: (elt -> 'b -> 'b) -> t -> 'b -> 'b
+  val iter: (key -> unit) -> t -> unit
+  val fold: (key -> 'b -> 'b) -> t -> 'b -> 'b
   val length: t -> int
   val equal: t -> t -> bool
   val hash: t -> int
-  val iter2: (elt -> unit) -> t -> t -> unit
+  val iter2: (key -> unit) -> t -> t -> unit
 (*|  val print_stats: unit -> unit*)
 end
 
-module Make(H: HashedType): (S with type key = H.t and type elt = H.elt and type t = H.elt hashset) =
+module Make(H: Type): (S with type key = H.t key) =
 struct
-  type key = H.t
-  type elt = H.elt
-  type t = elt hashset
+  type key = H.t consed
+  type t = H.t hashset
   exception Locked
   let create = create
   let clear = clear
@@ -115,14 +111,6 @@ struct
   
   (* we use a multiplier to avoid clustering *)
   let index base hash = (hash * 113) land max_int mod base
-  
-  (*|  let probe_count = ref 0                                             *)
-  (*|  let seek_count = ref 0                                              *)
-  (*|  let print_stats () =                                                *)
-  (*|    Printf.fprintf stderr "probe count / seek count: %n / %n = %f.3\n"*)
-  (*|      !probe_count                                                    *)
-  (*|      !seek_count                                                     *)
-  (*|      ((float_of_int !probe_count) /. (float_of_int !seek_count))     *)
   
   let rec re_insert ndata nbase elt i =
     if ndata.(i) == blank then ndata.(i) <- elt
@@ -142,7 +130,7 @@ struct
       for i = 1 to obase do
         let elt = odata.(obase - i) in
         if elt != blank then begin
-          let hash = H.hash (H.key elt) in
+          let hash = elt.tag in
           let oidx = index obase hash in
           let nidx = index nbase hash in
           if oidx >= obase - i then re_insert ndata nbase elt nidx
@@ -156,89 +144,47 @@ struct
   let rec mem_rec h base key i =
     let e = h.data.(i) in
     if e == blank then false
-    else if H.equal (H.key e) key then true
+    else if e == key then true
     else mem_rec h base key (next_probe base i)
-  
   let mem h key =
     let base = Array.length h.data in
-    mem_rec h base key (index base (H.hash key))
+    mem_rec h base key (index base key.tag)
   
-  let rec find_rec h base key i =
-    let e = h.data.(i) in
-    if e == blank then raise Not_found
-    else if H.equal (H.key e) key then e
-    else find_rec h base key (next_probe base i)
-  
-  let find h key =
-    let base = Array.length h.data in
-    find_rec h base key (index base (H.hash key))
-  
-  let rec find_all_rec h base key i =
-    let e = h.data.(i) in
-    if e == blank then []
-    else if H.equal (H.key e) key then
-      e :: find_all_rec h base key (next_probe base i)
-    else find_all_rec h base key (next_probe base i)
-  
-  let find_all h key =
-    let base = Array.length h.data in
-    find_all_rec h base key (index base (H.hash key))
-  
-  let rec add_rec h base elt i =
-    let e = h.data.(i) in
-    h.data.(i) <- elt;
+  let rec add_rec h base key i =
+    let e = h.data.(i) in    
     if e == blank then (
+      h.data.(i) <- key;
       h.size <- succ h.size;
       if oversized base h.size then resize h
-    ) else add_rec h base e (next_probe base i)
-  
-  let add h elt =
+    ) else add_rec h base key (next_probe base i)
+  let add h key =
     if h.size < 0 then raise Locked;
-    let key = H.key elt in
     let base = Array.length h.data in
-    add_rec h base elt (index base (H.hash key))
-  
-  let rec replace_rec h base key elt i =
-    let e = h.data.(i) in
-    if e == blank then (
-      h.data.(i) <- elt;
-      h.size <- succ h.size;
-      if oversized base h.size then resize h
-    ) else if H.equal (H.key e) key then
-      h.data.(i) <- elt
-    else replace_rec h base key elt (next_probe base i)
-  
-  let replace h elt =
-    if h.size < 0 then raise Locked;
-    let key = H.key elt in
-    let base = Array.length h.data in
-    replace_rec h base key elt (index base (H.hash key))
+    add_rec h base key (index base key.tag)
   
   let rec shift h base j i =
     let e = h.data.(i) in
     if e == blank || i = j then h.data.(j) <- blank
-    else let k = index base (H.hash (H.key e)) in
+    else let k = index base e.tag in
       if between k i j then
         shift h base j (next_probe base i)
       else begin
         h.data.(j) <- e;
         shift h base i (next_probe base i)
       end
-  
   let rec remove_rec h base key i =
     let e = h.data.(i) in
     if e == blank then ()
-    else if H.equal (H.key e) key then begin
+    else if e == key then begin
       shift h base i (next_probe base i);
       h.size <- pred h.size;
       if undersized base h.size then resize h
     end
     else remove_rec h base key (next_probe base i)
-  
   let remove h key =
     if h.size < 0 then raise Locked;
     let base = Array.length h.data in
-    remove_rec h base key (index base (H.hash key))
+    remove_rec h base key (index base key.tag)
   
   (*|  let equal h1 h2 =                               *)
   (*|    length h1 == length h2 &&                     *)
@@ -247,17 +193,17 @@ struct
   let equal h1 h2 =
     (length h1) == (length h2) &&
     try
-      iter (fun e -> if not (mem h2 (H.key e)) then raise Not_found) h1;
+      iter (fun e -> if not (mem h2 e) then raise Not_found) h1;
       true
     with Not_found -> false
   
   let hash h =
-    fold (fun e h -> h + H.hash (H.key e)) h 0
+    fold (fun e h -> h + e.tag) h 0
   
   let iter2 f h1 h2 =
     if length h1 > length h2 then
-      iter (fun e -> if mem h1 (H.key e) then f e) h2
+      iter (fun e -> if mem h1 e then f e) h2
     else
-      iter (fun e -> if mem h2 (H.key e) then f e) h1
+      iter (fun e -> if mem h2 e then f e) h1
   
 end

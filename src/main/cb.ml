@@ -33,7 +33,7 @@ let () =
 
 type output_format =
   | Fowl
-  | Krss
+  | Impl
   | Lisp
 
 let _ =
@@ -51,8 +51,8 @@ let _ =
           ("-c", Set classify, " classifies the ontology");
           ("-d", Set distill, " do not classify but parse and output the ontology");
           ("-o", String (fun s -> output := s),"[file] outputs the result to [file] instead of standard output (by default)");
-          ("-fowl", Unit (fun () -> output_format := Fowl), " set the taxonomy output format to functional style owl syntax (default)");
-          ("-krss", Unit (fun () -> output_format := Krss), " set the taxonomy output format to krss");
+          ("-fowl", Unit (fun () -> output_format := Fowl), " set the taxonomy output format to functional style owl 2 syntax (default)");
+          ("-impl", Unit (fun () -> output_format := Impl), " output all subsumptions in functional style owl 2 syntax");
           ("-lisp", Unit (fun () -> output_format := Lisp), " set the taxonomy output format to lisp");
           ]))
     
@@ -80,7 +80,8 @@ let _ =
     (if !input = "" then "standard input" else "\""^ !input ^ "\""); flush stderr;
   Printf.fprintf stderr "1. Loading the ontology...     "; flush stderr;
   PB.init (in_channel_length in_channel);
-  let ont = Owl2IO.load_ontology in_channel in
+  let ont = Ontology.create () in
+  Owl2IO.load_Ontology_from_channel ont in_channel;
   
   if !print_info then (
     Ontology.print_staticstics ont stderr;
@@ -104,8 +105,8 @@ let _ =
     flush stderr;
     (
       match !output_format with
-      | Fowl -> ConceptTaxonomy.print_fowl iss ont out_channel 
-      | Krss -> ConceptTaxonomy.print_krss iss ont out_channel
+      | Fowl -> ConceptTaxonomy.print_fowl iss ont out_channel
+      | Impl -> ConceptTaxonomy.print_fowl_impl iss ont out_channel
       | Lisp -> ConceptTaxonomy.print_lisp iss ont out_channel
     );
   );

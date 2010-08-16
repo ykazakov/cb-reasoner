@@ -1,30 +1,29 @@
 open Owl2
 type concept_record = private {
-    c_impl : ClassExpression.Set.t;
-    c_conj : ClassExpression.t ClassExpression.Map.t;
-(*|    c_conja : ClassExpression.t ClassExpression.HMap.t;*)
-    c_succ :
+    mutable c_impl : ClassExpression.Set.t;    
+    c_conj : ClassExpression.t ClassExpression.HMap.t;
+    mutable c_succ :
     (ClassExpression.Set.t * ClassExpression.Set.t)
     ObjectProperty.Map.t;
-    c_succi :
+    mutable c_succi :
     (ClassExpression.Set.t * ClassExpression.Set.t)
     ObjectProperty.Map.t;
   }
-type role_record = private {
+type role_record = private {    
     r_succ :
     (ClassExpression.Set.t * ClassExpression.Set.t)
-    ClassExpression.Map.t;
+    ClassExpression.HMap.t;
     r_succi :
     (ClassExpression.Set.t * ClassExpression.Set.t)
-    ClassExpression.Map.t;
-    r_sibl : ObjectProperty.Set.t;
-    r_isibl : ObjectProperty.Set.t;
-    r_sibli : ObjectProperty.Set.t;
-    r_isibli : ObjectProperty.Set.t;
+    ClassExpression.HMap.t;
+    mutable r_sibl : ObjectProperty.Set.t;
+    mutable r_isibl : ObjectProperty.Set.t;
+    mutable r_sibli : ObjectProperty.Set.t;
+    mutable r_isibli : ObjectProperty.Set.t;
   }
 type t = private {
-    hcr : concept_record ClassExpression.Hashtbl.t;
-    hrr : role_record ObjectProperty.Hashtbl.t;
+    hcr : concept_record ClassExpression.HMap.t;
+    hrr : role_record ObjectProperty.HMap.t;
   }
 (*|val empty_concept_record : concept_record*)
 (*|val empty_role_record : role_record      *)

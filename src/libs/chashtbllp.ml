@@ -3,16 +3,25 @@
 (*| [1] Donald E. Knuth, The Art of Computer Programming, Volume 3,        *)
 (*| Sorting and Searching, Second Edition                                  *)
 
+(* hash tables on conced values *)
+
+open Consed.T
+
 (* We do dynamic hashing, and resize when the array becomes too long. *)
+
+type 'a key = 'a consed
 
 type ('a, 'b) hashtbl =
   { mutable size: int;       (* the number of elements *)
-    mutable keys: 'a array;  (* keys *)
-    mutable data: 'b array } (* values *)
+    (* if negative the hashtable is locked for writing *)
+    mutable keys: 'a key array;  (* keys *)
+    mutable data: 'b array }     (* values *)
 
 (* Unique blank element of any type. Works by magic! Must be allocated in  *)
 (* heap.                                                                   *)
 let blank = Obj.magic (Obj.repr [0]);;
+
+let length h = abs h.size
 
 let create initial_size =
   let s = min (max 1 initial_size) Sys.max_array_length in
@@ -24,11 +33,9 @@ let clear h =
   h.size <- 0
 
 let copy h =
-  { size = h.size;
+  { size = length h;
     keys = Array.copy h.keys;
     data = Array.copy h.data }
-
-let length h = h.size
 
 (* next probing element modulo [base] *)
 let next_probe base i = pred (if i == 0 then base else i)
@@ -48,34 +55,36 @@ let undersized base size =
   size < (base / 3)
 
 let iter f h =
+  h.size <- - length h;
   let base = Array.length h.keys in
   for i = 0 to base - 1 do
     let key = h.keys.(i) in
     if key != blank then f key h.data.(i)
-  done
+  done;
+  h.size <- length h
 
 let fold f h init =
+  h.size <- - length h;
   let base = Array.length h.keys in
   let accu = ref init in
   for i = 0 to base - 1 do
     let key = h.keys.(i) in
     if key != blank then accu := f key h.data.(i) !accu
   done;
+  h.size <- length h;
   !accu
 
 (* Functorial interface *)
 
-module type HashedType =
-sig
+module type Type = sig
   type t
-  val equal : t -> t -> bool
-  val hash : t -> int
 end
 
 module type S =
 sig
   type key
   type 'a t
+  exception Locked
   val create : int -> 'a t
   val clear : 'a t -> unit
   val copy : 'a t -> 'a t
@@ -90,10 +99,11 @@ sig
   val length : 'a t -> int
 end
 
-module Make(H: HashedType): (S with type key = H.t) =
+module Make(H: Type): (S with type key = H.t key) =
 struct
-  type key = H.t
-  type 'a t = (key, 'a) hashtbl
+  type key = H.t consed
+  type 'a t = (H.t, 'a) hashtbl
+  exception Locked
   let create = create
   let clear = clear
   let copy = copy
@@ -128,7 +138,7 @@ struct
         let key = okeys.(obase - i) in
         if key != blank then begin
           let x = odata.(obase - i) in
-          let hash = H.hash key in
+          let hash = key.tag in
           let oidx = index obase hash in
           let nidx = index nbase hash in
           if oidx >= obase - i then re_insert nkeys ndata nbase key x nidx
@@ -140,53 +150,55 @@ struct
       h.data <- ndata;
     end
   
-  let rec mem_rec h base key i =
+  let rec mem_rec h key base i =
     let jey = h.keys.(i) in
     if jey == blank then false
-    else if H.equal jey key then true
-    else mem_rec h base key (next_probe base i)
+    else if jey == key then true
+    else mem_rec h key base (next_probe base i)
   
   let mem h key =
     let base = Array.length h.keys in
-    mem_rec h base key (index base (H.hash key))
+    mem_rec h key base (index base key.tag)
   
   let rec find_rec h base key i =
     let jey = h.keys.(i) in
     if jey == blank then raise Not_found
-    else if H.equal jey key then h.data.(i)
+    else if jey == key then h.data.(i)
     else find_rec h base key (next_probe base i)
   
   let find h key =
     let base = Array.length h.keys in
-    find_rec h base key (index base (H.hash key))
+    find_rec h base key (index base key.tag)
   
   let rec find_all_rec h base key i =
     let jey = h.keys.(i) in
     if jey == blank then []
-    else if H.equal jey key then
+    else if jey == key then
       h.data.(i) :: find_all_rec h base key (next_probe base i)
     else find_all_rec h base key (next_probe base i)
   
   let find_all h key =
     let base = Array.length h.keys in
-    find_all_rec h base key (index base (H.hash key))
+    find_all_rec h base key (index base key.tag)
   
   let rec add_rec h base key x i =
     let jey = h.keys.(i) in
-    h.keys.(i) <- key;
     if jey == blank then (
+      h.keys.(i) <- key;
       h.data.(i) <- x;
       h.size <- succ h.size;
       if oversized base h.size then resize h
-    ) else (
+    ) else if jey == key then (
       let y = h.data.(i) in
       h.data.(i) <- x;
-      add_rec h base jey y (next_probe base i)
-    )
+      add_rec h base key y (next_probe base i)
+    ) else
+      add_rec h base key x (next_probe base i)
   
   let add h key x =
+    if h.size < 0 then raise Locked;
     let base = Array.length h.keys in
-    add_rec h base key x (index base (H.hash key))
+    add_rec h base key x (index base key.tag)
   
   let rec replace_rec h base key x i =
     let jey = h.keys.(i) in
@@ -195,19 +207,19 @@ struct
       h.data.(i) <- x;
       h.size <- succ h.size;
       if oversized base h.size then resize h
-    ) else if H.equal jey key then (
-      h.keys.(i) <- key;
+    ) else if jey == key then (
       h.data.(i) <- x;
     ) else replace_rec h base key x (next_probe base i)
   
   let replace h key x =
+    if h.size < 0 then raise Locked;
     let base = Array.length h.keys in
-    replace_rec h base key x (index base (H.hash key))
+    replace_rec h base key x (index base key.tag)
   
   let rec shift h base j i =
     let jey = h.keys.(i) in
     if jey == blank || i = j then h.keys.(j) <- blank
-    else let k = index base (H.hash jey) in
+    else let k = index base jey.tag in
       if between k i j then
         shift h base j (next_probe base i)
       else begin
@@ -219,7 +231,7 @@ struct
   let rec remove_rec h base key i =
     let jey = h.keys.(i) in
     if jey == blank then ()
-    else if H.equal jey key then begin
+    else if jey == key then begin
       shift h base i (next_probe base i);
       h.size <- pred h.size;
       if undersized base h.size then resize h
@@ -228,8 +240,9 @@ struct
   
   let remove h key =
     (* when removing, we delete only keys, data is irrelevant *)
+    if h.size < 0 then raise Locked;
     let base = Array.length h.keys in
-    remove_rec h base key (index base (H.hash key))
+    remove_rec h base key (index base key.tag)
   
   let iter2 f h1 h2 =
     if length h1 > length h2 then
