@@ -1,79 +1,82 @@
 open Owl2
-val load_ontology : in_channel -> Ontology.t
+val load_Ontology_from_channel : Ontology.t -> in_channel -> unit
+val fprint_IRI :
+  Format.formatter -> IRI.t -> unit
 val fprint_Datatype :
-  Format.formatter -> Datatype.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> Datatype.t -> unit
 val fprint_ConstrainingFacet :
   Format.formatter ->
-  ConstrainingFacet.Constructor.t Consed.T.consed -> unit
+  ConstrainingFacet.t -> unit
 val fprint_ObjectProperty :
   Format.formatter ->
-  ObjectProperty.Constructor.t Consed.T.consed -> unit
+  ObjectProperty.t -> unit
 val fprint_DataProperty :
-  Format.formatter -> DataProperty.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> DataProperty.t -> unit
 val fprint_AnnotationProperty :
   Format.formatter ->
-  AnnotationProperty.Constructor.t Consed.T.consed -> unit
+  AnnotationProperty.t -> unit
 val fprint_Class :
-  Format.formatter -> Class.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> Class.t -> unit
 val fprint_Individual :
-  Format.formatter -> Individual.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> Individual.t -> unit
 val fprint_Literal :
-  Format.formatter -> Literal.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> Literal.t -> unit
 val fprint_ObjectPropertyExpression :
   Format.formatter ->
-  ObjectPropertyExpression.Constructor.t Consed.T.consed -> unit
+  ObjectPropertyExpression.t -> unit
 val fprint_subObjectPropertyExpression :
   Format.formatter ->
-  ObjectPropertyExpression.Constructor.t Consed.T.consed list ->
+  ObjectPropertyExpression.t list ->
   unit
 val fprint_DataPropertyExpression :
   Format.formatter ->
-  DataPropertyExpression.Constructor.t Consed.T.consed -> unit
+  DataPropertyExpression.t -> unit
 val fprint_DataRange :
-  Format.formatter -> DataRange.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> DataRange.t -> unit
 val fprint_ClassExpression :
   Format.formatter ->
-  ClassExpression.Constructor.t Consed.T.consed -> unit
+  ClassExpression.t -> unit
 val fprint_ClassExpressionAxiom :
   Format.formatter ->
-  ClassExpressionAxiom.Constructor.t Consed.T.consed -> unit
+  ClassExpressionAxiom.t -> unit
 val fprint_ObjectPropertyAxiom :
   Format.formatter ->
-  ObjectPropertyAxiom.Constructor.t Consed.T.consed -> unit
+  ObjectPropertyAxiom.t -> unit
 val fprint_DataPropertyAxiom :
   Format.formatter ->
-  DataPropertyAxiom.Constructor.t Consed.T.consed -> unit
+  DataPropertyAxiom.t -> unit
 val fprint_Assertion :
-  Format.formatter -> Assertion.Constructor.t Consed.T.consed -> unit
+  Format.formatter -> Assertion.t -> unit
 val fprint_ontology : Format.formatter -> Ontology.t -> unit
 val print_ontology_ch : Ontology.t -> out_channel -> unit
 val save_ontology : Ontology.t -> string -> unit
+val str_of_IRI : IRI.t -> string
 val str_of_Datatype :
-  Datatype.Constructor.t Consed.T.consed -> string
+  Datatype.t -> string
 val str_of_ConstrainingFacet :
-  ConstrainingFacet.Constructor.t Consed.T.consed -> string
+  ConstrainingFacet.t -> string
 val str_of_ObjectProperty :
-  ObjectProperty.Constructor.t Consed.T.consed -> string
+  ObjectProperty.t -> string
 val str_of_DataProperty :
-  DataProperty.Constructor.t Consed.T.consed -> string
-val str_of_Class : Class.Constructor.t Consed.T.consed -> string
+  DataProperty.t -> string
+val str_of_Class : Class.t -> string
 val str_of_Individual :
-  Individual.Constructor.t Consed.T.consed -> string
+  Individual.t -> string
 val str_of_Literal :
-  Literal.Constructor.t Consed.T.consed -> string
+  Literal.t -> string
 val str_of_ObjectPropertyExpression :
-  ObjectPropertyExpression.Constructor.t Consed.T.consed -> string
+  ObjectPropertyExpression.t -> string
 val str_of_DataPropertyExpression :
-  DataPropertyExpression.Constructor.t Consed.T.consed -> string
+  DataPropertyExpression.t -> string
 val str_of_DataRange :
-  DataRange.Constructor.t Consed.T.consed -> string
+  DataRange.t -> string
 val str_of_ClassExpression :
-  ClassExpression.Constructor.t Consed.T.consed -> string
+  ClassExpression.t -> string
 val str_of_ClassExpressionAxiom :
-  ClassExpressionAxiom.Constructor.t Consed.T.consed -> string
+  ClassExpressionAxiom.t -> string
 val str_of_ObjectPropertyAxiom :
-  ObjectPropertyAxiom.Constructor.t Consed.T.consed -> string
+  ObjectPropertyAxiom.t -> string
 val str_of_DataPropertyAxiom :
-  DataPropertyAxiom.Constructor.t Consed.T.consed -> string
+  DataPropertyAxiom.t -> string
 val str_of_Assertion :
-  Assertion.Constructor.t Consed.T.consed -> string
+  Assertion.t -> string

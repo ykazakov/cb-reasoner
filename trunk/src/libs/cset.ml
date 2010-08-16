@@ -545,6 +545,8 @@ module type S = sig
   val partition: (elt -> bool) -> t -> t * t
   val cardinal: t -> int
   val elements: t -> elt list
+  val min_elt: t -> elt
+  val max_elt: t -> elt
   val choose: t -> elt
   val equal: t -> t -> bool
   val compare: t -> t -> int
@@ -582,6 +584,8 @@ module Make (T : T) = struct
   let partition = partition
   let cardinal = cardinal
   let elements = elements
+  let min_elt = min_elt
+  let max_elt = max_elt
   let choose = choose
   let equal = equal
   let compare = compare

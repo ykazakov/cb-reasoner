@@ -1,18 +1,18 @@
 (**=========== input-output for ontologies in functional style syntax ============**)
 
-open Owl2
 open Consed.T
+open Owl2
 module O = Ontology
 module PB = ProgressBar
 module F = Format
 
 (**=========== loading from the input channel ===========**)
 
-let load_ontology input =
+let load_Ontology_from_channel ont input =
   let lexbuf = Lexing.from_channel input in
   let ont =
     try
-      Owl2_fs_parser.owl_ontologyDocument Owl2_fs_lexer.token lexbuf
+      Owl2_fs_parser.entry (Owl2_fs_lexer.entry ont) lexbuf
     with Parsing.Parse_error ->
         let err_lexeme = Lexing.lexeme lexbuf in
         let err_pos = lexbuf.Lexing.lex_curr_p.Lexing.pos_cnum - lexbuf.Lexing.lex_curr_p.Lexing.pos_bol in
@@ -46,7 +46,7 @@ module P = struct
   (* separated with a formatting string [sep]                              *)
   let fprint_cset f prt sep set =
     let flag_sep = ref false in
-    Cset.iter (fun e ->
+    List.iter (fun e ->
             if !flag_sep then (
               F.fprintf f sep;
             );
@@ -61,133 +61,50 @@ module P = struct
     | Some e -> F.fprintf f prx; prt f e
 end;;
 
+(**======================== IRIs ========================**)
+
+let str_of_IRI iri = IRI.str_of iri
+let fprint_IRI f iri = F.pp_print_string f (str_of_IRI iri)
+
+(**====================== NodeIDs =======================**)
+
+let str_of_NodeID id = NodeID.str_of id
+let fprint_NodeID f id = F.pp_print_string f (str_of_NodeID id)
+
 (**====================== Datatypes =====================**)
 
-let fprint_Datatype f dt =
-  let module C = Datatype.Constructor in
-  F.fprintf f "%s"
-    begin match dt.data with
-      | C.IRI iri -> iri
-      | C.Rdfs_Literal -> "rdfs:Literal"
-      | C.Owl_real -> "owl:real"
-      | C.Owl_rational -> "owl:rational"
-      | C.Xsd_decimal -> "owl:decimal"
-      | C.Xsd_integer -> "xsd:integer"
-      | C.Xsd_nonNegativeInteger -> "xsd:nonNegativeInteger"
-      | C.Xsd_nonPositiveInteger -> "xsd:nonPositiveInteger"
-      | C.Xsd_positiveInteger -> "xsd:positiveInteger"
-      | C.Xsd_negativeInteger -> "xsd:negativeInteger"
-      | C.Xsd_long -> "xsd:long"
-      | C.Xsd_int -> "xsd:int"
-      | C.Xsd_short -> "xsd:short"
-      | C.Xsd_byte -> "xsd:byte"
-      | C.Xsd_unsignedLong -> "xsd:unsignedLong"
-      | C.Xsd_unsignedInt -> "xsd:unsignedInt"
-      | C.Xsd_unsignedShort -> "xsd:unsignedShort"
-      | C.Xsd_unsignedByte -> "xsd:unsignedByte"
-      | C.Xsd_double -> "xsd:double"
-      | C.Xsd_float -> "xsd:float"
-      | C.Xsd_string -> "xsd:string"
-      | C.Xsd_normalizedString -> "xsd:normalizedString"
-      | C.Xsd_token -> "xsd:token"
-      | C.Xsd_language -> "xsd:language"
-      | C.Xsd_Name -> "xsd:Name"
-      | C.Xsd_NCName -> "xsd:NCName"
-      | C.Xsd_NMTOKEN -> "xsd:NMTOKEN"
-      | C.Xsd_boolean -> "xsd:boolean"
-      | C.Xsd_hexBinary -> "xsd:hexBinary"
-      | C.Xsd_base64Binary -> "xsd:base64Binary"
-      | C.Xsd_anyURI -> "xsd:anyURI"
-      | C.Xsd_dateTime -> "xsd:dateTime"
-      | C.Xsd_dateTimeStamp -> "xsd:dateTimeStamp"
-      | C.Rdf_XMLLiteral -> "rdf:XMLLiteral"
-    end
-;;
+let str_of_Datatype dt = Datatype.str_of dt
+let fprint_Datatype f dt = F.pp_print_string f (str_of_Datatype dt)
 
 (**================== Constraining Facets ===============**)
 
-let fprint_ConstrainingFacet f cf =
-  let module C = ConstrainingFacet.Constructor in
-  F.fprintf f "%s"
-    begin match cf.data with
-      | C.IRI iri -> iri
-      | C.Xsd_minInclusive -> "xsd:minInclusive"
-      | C.Xsd_maxInclusive -> "xsd:maxInclusive"
-      | C.Xsd_minExclusive -> "xsd:minExclusive"
-      | C.Xsd_maxExclusive -> "xsd:maxExclusive"
-      | C.Xsd_length -> "xsd:length"
-      | C.Xsd_minLength -> "xsd:minLength"
-      | C.Xsd_maxLength -> "xsd:maxLength"
-      | C.Xsd_pattern -> "xsd:pattern"
-      | C.Rdf_langRange -> "rdf:langRange"
-    end
-;;
+let str_of_ConstrainingFacet dt = ConstrainingFacet.str_of dt
+let fprint_ConstrainingFacet f dt = F.pp_print_string f (str_of_ConstrainingFacet dt)
 
 (**================= Object Properties ==================**)
 
-let fprint_ObjectProperty f op =
-  let module C = ObjectProperty.Constructor in
-  F.fprintf f "%s"
-    begin match op.data with
-      | C.IRI iri -> iri
-      | C.TopObjectProperty -> "owl:topObjectProperty"
-      | C.BottomObjectProperty -> "owl:bottomObjectProperty"
-    end
-;;
+let str_of_ObjectProperty dt = ObjectProperty.str_of dt
+let fprint_ObjectProperty f dt = F.pp_print_string f (str_of_ObjectProperty dt)
 
 (**=================== Data Properties ==================**)
 
-let fprint_DataProperty f dp =
-  let module C = DataProperty.Constructor in
-  F.fprintf f "%s"
-    begin match dp.data with
-      | C.IRI iri -> iri
-      | C.TopDataProperty -> "owl:topDataProperty"
-      | C.BottomDataProperty -> "owl:bottomDataProperty"
-    end
-;;
+let str_of_DataProperty dt = DataProperty.str_of dt
+let fprint_DataProperty f dt = F.pp_print_string f (str_of_DataProperty dt)
 
 (**================ Annotation Properties ===============**)
 
-let fprint_AnnotationProperty f ap =
-  let module C = AnnotationProperty.Constructor in
-  F.fprintf f "%s"
-    begin match ap.data with
-      | C.IRI iri -> iri
-      | C.Rdfs_label -> "rdfs:label"
-      | C.Rdfs_comment -> "rdfs:comment"
-      | C.Rdfs_seeAlso -> "rdfs:seeAlso"
-      | C.Rdfs_isDefinedBy -> "rdfs:isDefinedBy"
-      | C.Owl_deprecated -> "owl:deprecated"
-      | C.Owl_versionInfo -> "owl:versionInfo"
-      | C.Owl_priorVersion -> "owl:priorVersion"
-      | C.Owl_backwardCompatibleWith -> "owl:backwardCompatibleWith"
-      | C.Owl_incompatibleWith -> "owl:incompatibleWith"
-    end
-;;
+let str_of_AnnotationProperty dt = AnnotationProperty.str_of dt
+let fprint_AnnotationProperty f dt = F.pp_print_string f (str_of_AnnotationProperty dt)
 
 (**====================== Classes =======================**)
 
-let fprint_Class f c =
-  let module C = Class.Constructor in
-  F.fprintf f "%s"
-    begin match c.data with
-      | C.IRI iri -> iri
-      | C.Thing -> "owl:Thing"
-      | C.Nothing -> "owl:Nothing"
-    end
-;;
+let str_of_Class dt = Class.str_of dt
+let fprint_Class f dt = F.pp_print_string f (str_of_Class dt)
 
 (**==================== Individuals =====================**)
 
-let fprint_Individual f i =
-  let module C = Individual.Constructor in
-  F.fprintf f "%s"
-    begin match i.data with
-      | C.NamedIndividual iri -> iri
-      | C.AnonymousIndividual st -> st
-    end
-;;
+let str_of_Individual dt = Individual.str_of dt
+let fprint_Individual f dt = F.pp_print_string f (str_of_Individual dt)
 
 (**======================= Literals =====================**)
 
@@ -203,6 +120,11 @@ let fprint_Literal f lt =
     | C.StringLiteralWithLanguage (st, lg) ->
         F.fprintf f "@[<hv 2>\"%s\"@%s@]" st lg;
   end
+;;
+
+let str_of_Literal lt =
+  fprint_Literal F.str_formatter lt;
+  F.flush_str_formatter ()
 ;;
 
 (**============ Object Property Expressions =============**)
@@ -229,6 +151,11 @@ let fprint_subObjectPropertyExpression f sope =
   end
 ;;
 
+let str_of_ObjectPropertyExpression ope =
+  fprint_ObjectPropertyExpression F.str_formatter ope;
+  F.flush_str_formatter ()
+;;
+
 (**============= Data Property Expressions ==============**)
 
 let fprint_DataPropertyExpression f dpe =
@@ -236,6 +163,11 @@ let fprint_DataPropertyExpression f dpe =
   begin match dpe.data with
     | C.DataProperty dp -> fprint_DataProperty f dp
   end
+;;
+
+let str_of_DataPropertyExpression dpe =
+  fprint_DataPropertyExpression F.str_formatter dpe;
+  F.flush_str_formatter ()
 ;;
 
 (**==================== Data Ranges =====================**)
@@ -272,21 +204,47 @@ let rec fprint_DataRange f dr =
   end
 ;;
 
+let str_of_DataRange dr =
+  fprint_DataRange F.str_formatter dr;
+  F.flush_str_formatter ()
+;;
+
 (**==================== Class Expressions ==================**)
 
 let rec fprint_ClassExpression f ce =
   let module C = ClassExpression.Constructor in
+  let rec frpint_ObjectIntersectionOf f ce =
+    begin match ce.data with
+      | C.ObjectIntersectionOf (cce, ce) ->
+          frpint_ObjectIntersectionOf f cce;
+          F.fprintf f "@ ";
+          frpint_ObjectIntersectionOf f ce;
+      | _ -> fprint_ClassExpression f ce
+    end
+  in
   begin match ce.data with
     | C.Class c ->
         fprint_Class f c;
-    | C.ObjectIntersectionOf ce_set ->
+    | C.ObjectIntersectionOf (cce, ce) ->
         F.fprintf f "@[<hv 2>ObjectIntersectionOf(@,";
-        P.fprint_cset f fprint_ClassExpression "@ " ce_set;
+        frpint_ObjectIntersectionOf f cce;
+        F.fprintf f "@ ";
+        frpint_ObjectIntersectionOf f ce;
         F.fprintf f "@;<0 -2>)@]";
-    | C.ObjectUnionOf ce_set ->
+    (*|    | C.ObjectIntersectionOfb (cce, ce) ->*)
+    (*|        fprint_ClassExpression f cce;     *)
+    (*|        F.fprintf f "@ ";                 *)
+    (*|        fprint_ClassExpression f ce;      *)
+    | C.ObjectUnionOf (cce, ce) ->
         F.fprintf f "@[<hv 2>ObjectUnionOf(@,";
-        P.fprint_cset f fprint_ClassExpression "@ " ce_set;
+        fprint_ClassExpression f cce;
+        F.fprintf f "@ ";
+        fprint_ClassExpression f ce;
         F.fprintf f "@;<0 -2>)@]";
+    (*|    | C.ObjectUnionOfb (cce, ce) ->  *)
+    (*|        fprint_ClassExpression f cce;*)
+    (*|        F.fprintf f "@ ";            *)
+    (*|        fprint_ClassExpression f ce; *)
     | C.ObjectComplementOf ce ->
         F.fprintf f "@[<hv 2>ObjectComplementOf(@,";
         fprint_ClassExpression f ce;
@@ -380,6 +338,11 @@ let rec fprint_ClassExpression f ce =
   end
 ;;
 
+let str_of_ClassExpression ce =
+  fprint_ClassExpression F.str_formatter ce;
+  F.flush_str_formatter ()
+;;
+
 (**================= Class Expression Axioms ===============**)
 
 let fprint_ClassExpressionAxiom f ax =
@@ -406,6 +369,11 @@ let fprint_ClassExpressionAxiom f ax =
         P.fprint_cset f fprint_ClassExpression "@ " ce_set;
         F.fprintf f "@;<0 -2>)@]";
   end;
+;;
+
+let str_of_ClassExpressionAxiom ax =
+  fprint_ClassExpressionAxiom F.str_formatter ax;
+  F.flush_str_formatter ()
 ;;
 
 (**================= Object Property Axioms ================**)
@@ -476,6 +444,11 @@ let fprint_ObjectPropertyAxiom f ax =
   end
 ;;
 
+let str_of_ObjectPropertyAxiom ax =
+  fprint_ObjectPropertyAxiom F.str_formatter ax;
+  F.flush_str_formatter ()
+;;
+
 (**================= Data Property Axioms ================**)
 
 let fprint_DataPropertyAxiom f ax =
@@ -512,6 +485,11 @@ let fprint_DataPropertyAxiom f ax =
         fprint_DataPropertyExpression f dpe;
         F.fprintf f "@;<0 -2>)@]";
   end
+;;
+
+let str_of_DataPropertyAxiom ax =
+  fprint_DataPropertyAxiom F.str_formatter ax;
+  F.flush_str_formatter ()
 ;;
 
 (**====================== Assertions ======================**)
@@ -568,21 +546,26 @@ let fprint_Assertion f ax =
   end;
 ;;
 
+let str_of_Assertion ax =
+  fprint_Assertion F.str_formatter ax;
+  F.flush_str_formatter ()
+;;
+
 (**======================== Ontology =======================**)
 
-let fprint_ontology f ont =  
+let fprint_ontology f ont =
   (* periodically flushing to improve the performance of GC *)
   F.fprintf f "@[<v 2>Ontology(";
   O.iter_record_ObjectPropertyAxiom
-    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_ObjectPropertyAxiom f ax) ont;  
+    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_ObjectPropertyAxiom f ax) ont;
   O.iter_record_ClassExpressionAxiom
-    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_ClassExpressionAxiom f ax) ont;    
+    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_ClassExpressionAxiom f ax) ont;
   O.iter_record_Assertion
     (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_Assertion f ax) ont;
-  F.fprintf f "@;<0 -2>)@]%!";  
+  F.fprintf f "@;<0 -2>)@]%!";
 ;;
 
-let print_ontology_ch ont out =  
+let print_ontology_ch ont out =
   let f = F.formatter_of_out_channel out in
   fprint_ontology f ont;
 ;;
@@ -593,79 +576,4 @@ let save_ontology ont file_name =
   close_out file;
 ;;
 
-(**===================== printing into strings =======================**)
 
-let str_of_Datatype dt =
-  fprint_Datatype F.str_formatter dt;
-  F.flush_str_formatter ()
-;;
-
-let str_of_ConstrainingFacet cf =
-  fprint_ConstrainingFacet F.str_formatter cf;
-  F.flush_str_formatter ()
-;;
-
-let str_of_ObjectProperty op =
-  fprint_ObjectProperty F.str_formatter op;
-  F.flush_str_formatter ()
-;;
-
-let str_of_DataProperty dp =
-  fprint_DataProperty F.str_formatter dp;
-  F.flush_str_formatter ()
-;;
-
-let str_of_Class c =
-  fprint_Class F.str_formatter c;
-  F.flush_str_formatter ()
-;;
-
-let str_of_Individual i =
-  fprint_Individual F.str_formatter i;
-  F.flush_str_formatter ()
-;;
-
-let str_of_Literal lt =
-  fprint_Literal F.str_formatter lt;
-  F.flush_str_formatter ()
-;;
-
-let str_of_ObjectPropertyExpression ope =
-  fprint_ObjectPropertyExpression F.str_formatter ope;
-  F.flush_str_formatter ()
-;;
-
-let str_of_DataPropertyExpression dpe =
-  fprint_DataPropertyExpression F.str_formatter dpe;
-  F.flush_str_formatter ()
-;;
-
-let str_of_DataRange dr =
-  fprint_DataRange F.str_formatter dr;
-  F.flush_str_formatter ()
-;;
-
-let str_of_ClassExpression ce =
-  fprint_ClassExpression F.str_formatter ce;
-  F.flush_str_formatter ()
-;;
-
-let str_of_ClassExpressionAxiom ax =
-  fprint_ClassExpressionAxiom F.str_formatter ax;
-  F.flush_str_formatter ()
-;;
-
-let str_of_ObjectPropertyAxiom ax =
-  fprint_ObjectPropertyAxiom F.str_formatter ax;
-  F.flush_str_formatter ()
-;;
-
-let str_of_DataPropertyAxiom ax =
-  fprint_DataPropertyAxiom F.str_formatter ax;
-  F.flush_str_formatter ()
-;;
-
-let str_of_Assertion ax =
-  fprint_Assertion F.str_formatter ax;
-  F.flush_str_formatter ()
-;;

@@ -185,6 +185,14 @@ let sanity = "Sanity checking" >::: [
   "test_fold" >:: test_fold;
   ]
 
+(* Returns true if the result list contains successes only *)
+let rec was_successful results = 
+  match results with 
+      [] -> true
+    | RSuccess _::t -> was_successful t
+    | _ -> false    
+;;
+
 let _ =
   generate ();
   let verbose = ref true in

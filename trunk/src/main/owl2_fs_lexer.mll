@@ -16,6 +16,8 @@ let update_pos lexbuf =
     };
  ;;  
 
+let ont_set = ref false
+
 (* because of too many keywords, the automaton can be big; *)
 (* instead we generate a hastable for lookup *)
 
@@ -192,22 +194,24 @@ let _ =
   
 }
 
+let ident = [^ ' ' '\t' '\n' '(' ')' '=' '^' '@' '<' '>']+ 
 
-
-
-rule token = parse
+rule entry ont = parse
+  | ""                                   { if !ont_set then token lexbuf else (ont_set := true; Init ont) }
+and token = parse
 
 (* Structural Symbols *)
     [' ' '\t']                           { token lexbuf }
-  | "\n"                                 { update_pos lexbuf; token lexbuf}  
+  | '\n'                                 { update_pos lexbuf; token lexbuf}  
   | eof                                  { update_pos lexbuf; EOF }  
-  | "("                                  { LeftParen    }
-  | ")"                                  { RightParen   }
-  | "="                                  { Equal        }
+  | '('                                  { LeftParen    }
+  | ')'                                  { RightParen   }
+  | '='                                  { Equal        }
   | "^^"                                 { DoubleSuperscript }
   | '@'                                  { At }  
   | '<'                                  { LeftAngle }
   | '>'                                  { RightAngle }
+  | '#'                                  { Hash }
 (* comments annotations *)    
   | "//" [^ '\n']*                       { token lexbuf }
 (* integers, Strings, and Node IDs *)
@@ -217,12 +221,9 @@ rule token = parse
       String.iter (fun c -> if c = '\n' then update_pos lexbuf) s;
       QuotedString (s)     
     } 
-  | "_:" [^ '(' ')' '"' '=' '"' '@' '^' '<' '>' ' ' '\n']    
-    { NodeID (Lexing.lexeme lexbuf) } (* specified in [RDF Test Cases] *)
-          
+  | "_:" ident                  { NodeID (Lexing.lexeme lexbuf) }
+	| "<" ident ">"               { FullIRI (Lexing.lexeme lexbuf) }
 (* identifiers *)
-
-  | [^ '(' ')' '"' '=' '"' '@' '^' '<' '>' ' ' '\n']+ as id    
+  | ident as id    
      { try Hashtbl.find keyword_table id
-       with Not_found ->        
-      Identifier (Lexing.lexeme lexbuf) }
+       with Not_found -> Identifier (Lexing.lexeme lexbuf) }

@@ -85,20 +85,3 @@ module Map : sig
   val inv : 'a t -> 'a t
   val atomic : ('a -> 'a -> 'a) -> 'a t -> 'a ObjectProperty.Map.t
 end
-
-module HSet : sig
-  type elt  
-  type t = ObjectProperty.HSet.t * ObjectProperty.HSet.t
-  val create: int -> t
-  val clear: t -> unit
-  val copy: t -> t
-  val add: t -> elt -> unit
-  val remove: t -> elt -> unit
-  val mem : t -> elt -> bool
-  val iter: (elt -> unit) -> t -> unit
-  val iter2: (elt -> unit) -> t -> t -> unit
-  val fold: (elt -> 'b -> 'b) -> t -> 'b -> 'b
-  val cardinal: t -> int
-  val equal: t -> t -> bool
-  val hash: t -> int
-end
