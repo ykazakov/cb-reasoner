@@ -73,6 +73,7 @@ module Datatype : sig
 			| Xsd_unsignedByte
 			| Xsd_double
 			| Xsd_float
+			| Rdf_PlainLiteral
 			| Xsd_string
 			| Xsd_normalizedString
 			| Xsd_token

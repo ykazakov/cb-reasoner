@@ -209,6 +209,7 @@ owl_DTFloats:
 
 /* 4.3 Strings */
 owl_DTStrings:
+  | Rdf_PlainLiteral         { D.Rdf_PlainLiteral }
   | Xsd_string               { D.Xsd_string }
   | Xsd_normalizedString     { D.Xsd_normalizedString }
   | Xsd_token                { D.Xsd_token }
@@ -284,6 +285,7 @@ owl_AnnotationProperty_:
   | Rdfs_seeAlso                { AP.Rdfs_seeAlso }
   | Rdfs_isDefinedBy            { AP.Rdfs_isDefinedBy }
   | Owl_deprecated              { AP.Owl_deprecated }
+	| Owl_versionInfo             { AP.Owl_versionInfo }
   | Owl_priorVersion            { AP.Owl_priorVersion }
   | Owl_backwardCompatibleWith  { AP.Owl_backwardCompatibleWith }
   | Owl_incompatibleWith        { AP.Owl_incompatibleWith }

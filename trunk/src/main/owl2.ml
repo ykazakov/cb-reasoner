@@ -189,6 +189,7 @@ module Datatype = struct
       | Xsd_unsignedByte
       | Xsd_double
       | Xsd_float
+			| Rdf_PlainLiteral
       | Xsd_string
       | Xsd_normalizedString
       | Xsd_token
@@ -224,20 +225,21 @@ module Datatype = struct
       | Xsd_unsignedByte -> 17
       | Xsd_double -> 18
       | Xsd_float -> 19
-      | Xsd_string -> 20
-      | Xsd_normalizedString -> 21
-      | Xsd_token -> 22
-      | Xsd_language -> 23
-      | Xsd_Name -> 24
-      | Xsd_NCName -> 25
-      | Xsd_NMTOKEN -> 26
-      | Xsd_boolean -> 27
-      | Xsd_hexBinary -> 28
-      | Xsd_base64Binary -> 29
-      | Xsd_anyURI -> 30
-      | Xsd_dateTime -> 31
-      | Xsd_dateTimeStamp -> 32
-      | Rdf_XMLLiteral -> 33
+      | Rdf_PlainLiteral -> 20
+      | Xsd_string -> 21
+      | Xsd_normalizedString -> 22
+      | Xsd_token -> 23
+      | Xsd_language -> 24
+      | Xsd_Name -> 25
+      | Xsd_NCName -> 26
+      | Xsd_NMTOKEN -> 27
+      | Xsd_boolean -> 28
+      | Xsd_hexBinary -> 29
+      | Xsd_base64Binary -> 30
+      | Xsd_anyURI -> 31
+      | Xsd_dateTime -> 32
+      | Xsd_dateTimeStamp -> 33
+      | Rdf_XMLLiteral -> 34
     let compare dt1 dt2 =
       let c = (precedence dt1) - (precedence dt2) in
       if c <> 0 then c else
@@ -262,6 +264,7 @@ module Datatype = struct
         | Xsd_unsignedByte, Xsd_unsignedByte -> 0
         | Xsd_double, Xsd_double -> 0
         | Xsd_float, Xsd_float -> 0
+        | Rdf_PlainLiteral, Rdf_PlainLiteral -> 0
         | Xsd_string, Xsd_string -> 0
         | Xsd_normalizedString, Xsd_normalizedString -> 0
         | Xsd_token, Xsd_token -> 0
@@ -299,6 +302,7 @@ module Datatype = struct
       | Xsd_unsignedByte, Xsd_unsignedByte -> true
       | Xsd_double, Xsd_double -> true
       | Xsd_float, Xsd_float -> true
+      | Rdf_PlainLiteral, Rdf_PlainLiteral -> true
       | Xsd_string, Xsd_string -> true
       | Xsd_normalizedString, Xsd_normalizedString -> true
       | Xsd_token, Xsd_token -> true
@@ -335,20 +339,21 @@ module Datatype = struct
       | Xsd_unsignedByte -> (hm 18)
       | Xsd_double -> (hm 19)
       | Xsd_float -> (hm 20)
-      | Xsd_string -> (hm 21)
-      | Xsd_normalizedString -> (hm 22)
-      | Xsd_token -> (hm 23)
-      | Xsd_language -> (hm 24)
-      | Xsd_Name -> (hm 25)
-      | Xsd_NCName -> (hm 26)
-      | Xsd_NMTOKEN -> (hm 27)
-      | Xsd_boolean -> (hm 28)
-      | Xsd_hexBinary -> (hm 29)
-      | Xsd_base64Binary -> (hm 30)
-      | Xsd_anyURI -> (hm 31)
-      | Xsd_dateTime -> (hm 32)
-      | Xsd_dateTimeStamp -> (hm 33)
-      | Rdf_XMLLiteral -> (hm 34)
+      | Rdf_PlainLiteral -> (hm 21)
+      | Xsd_string -> (hm 22)
+      | Xsd_normalizedString -> (hm 23)
+      | Xsd_token -> (hm 24)
+      | Xsd_language -> (hm 25)
+      | Xsd_Name -> (hm 26)
+      | Xsd_NCName -> (hm 27)
+      | Xsd_NMTOKEN -> (hm 28)
+      | Xsd_boolean -> (hm 29)
+      | Xsd_hexBinary -> (hm 30)
+      | Xsd_base64Binary -> (hm 31)
+      | Xsd_anyURI -> (hm 32)
+      | Xsd_dateTime -> (hm 33)
+      | Xsd_dateTimeStamp -> (hm 34)
+      | Rdf_XMLLiteral -> (hm 35)
     let str_of = function
       | IRI iri -> IRI.str_of iri
       | Rdfs_Literal -> "rdfs:Literal"
@@ -370,6 +375,7 @@ module Datatype = struct
       | Xsd_unsignedByte -> "xsd:unsignedByte"
       | Xsd_double -> "xsd:double"
       | Xsd_float -> "xsd:float"
+      | Rdf_PlainLiteral -> "xsd:PlainLiteral"
       | Xsd_string -> "xsd:string"
       | Xsd_normalizedString -> "xsd:normalizedString"
       | Xsd_token -> "xsd:token"
