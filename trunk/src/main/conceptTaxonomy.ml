@@ -476,10 +476,14 @@ let print_krss t ont out =
 	) (* close: else *)
 ;;
 
-(* printing raw subsumption relations *)
+(** printing in functional style OWL 2 syntax *)
+
+(* printing all subsumption relations *)
 let print_fowl_impl t ont out =
 	PB.init (O.total_ClassIRI ont);
-	Printf.fprintf out "Ontology(taxonomy\n";
+	let tm = Unix.gmtime (Unix.gettimeofday ()) in
+	Printf.fprintf out "Ontology(<http://code.google.com/p/cb-reasoner/%n/%n/%n/taxonomy>\n"
+	(1900 + tm.Unix.tm_year) (tm.Unix.tm_mon + 1) tm.Unix.tm_mday;	
 	let bot = C.Nothing in
 	let top_equiv = find_top_equiv t in
 	(* check if the ontology is consistent *)
@@ -509,6 +513,7 @@ let print_fowl_impl t ont out =
 	Printf.fprintf out ")";
 ;;
 
+(* printing taxonomy *)
 let print_fowl t ont out =
 	let print_equivalent a s =
 		if not (S.is_empty s) then begin
@@ -518,7 +523,9 @@ let print_fowl t ont out =
 		end
 	in
 	PB.init (O.total_ClassIRI ont);
-	Printf.fprintf out "Ontology(taxonomy\n";
+	let tm = Unix.gmtime (Unix.gettimeofday ()) in
+	Printf.fprintf out "Ontology(<http://code.google.com/p/cb-reasoner/%n/%n/%n/taxonomy>\n"
+	(1900 + tm.Unix.tm_year) (tm.Unix.tm_mon + 1) tm.Unix.tm_mday;
 	let bot = C.Nothing in
 	let top_equiv = find_top_equiv t in
 	(* check if the ontology is consistent *)
