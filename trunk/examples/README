@@ -1,0 +1,15 @@
+This directory contains an example for the usage of CB
+
+CONTENTS:
+
+  README                this file
+  pizza.owl             pizza ontology in OWL-2 functional syntax  
+
+Example:
+
+  ../bin/cb pizza.owl -o pizza-tax.owl
+  OR
+  ../bin/cb < pizza.owl > pizza-tax.ow
+
+will load the ontology from file "pizza.owl", classifies it,
+and outputs the sorted taxonomy into the file "pizza-tax.owl"

@@ -1,0 +1,19 @@
+PREREQUISITES
+
+* Ocaml v. 3.11 or later 
+* GNU Make 
+
+INSTALLATION INSTRUCTIONS
+
+To compile the program, type:
+
+  make
+
+if successful, in order to create the binaries into the directory
+[./bin] type:
+
+  make install
+
+to remove auxiliary files created during the compilation type:
+
+  make clean

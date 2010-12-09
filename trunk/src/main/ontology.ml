@@ -284,7 +284,7 @@ let total_PropertyAssertion ont = ont.count_PropertyAssertion
 
 let add_ObjectProperty_pc ont op pc =
   let module M = ObjectProperty.Map in
-  let module C = ObjectProperty.Constructor in
+  let module C = ObjectProperty_Constructor in
   match op.data with
   | C.IRI _ -> (* adding only iris in the record *)
       ont.record_ObjectProperty <- M.add op
@@ -303,7 +303,7 @@ let add_ObjectProperty_pc ont op pc =
 
 let add_Class_pc ont c pc =
   let module M = ClassMap in
-  let module C = Class.Constructor in
+  let module C = Class_Constructor in
   match c with
   | C.IRI iri -> (* adding only iris in the record *)
       ont.record_Class <- M.add c
@@ -322,7 +322,7 @@ let add_Class_pc ont c pc =
 
 let add_Individual_pc ont i pc =
   let module M = Individual.Map in
-  let module C = Individual.Constructor in
+  let module C = Individual_Constructor in
   (* adding only iris in the record *)
   ont.record_Individual <- M.add i
     (let count = try M.find i ont.record_Individual
@@ -336,7 +336,7 @@ let add_Individual_pc ont i pc =
 
 let rec add_ObjectPropertyExpression_pc ont ope pc =
   let module M = ObjectPropertyExpression.Map in
-  let module C = ObjectPropertyExpression.Constructor in
+  let module C = ObjectPropertyExpression_Constructor in
   begin match ope.data with
     | C.ObjectProperty _ -> ()
     | _ -> ont.record_ComplexObjectPropertyExpression <-
@@ -348,7 +348,7 @@ let rec add_ObjectPropertyExpression_pc ont ope pc =
   propagate_ObjectPropertyExpression_pc ont ope pc
 and propagate_ObjectPropertyExpression_pc ont ope pc =
   let module M = ObjectPropertyExpression.Map in
-  let module C = ObjectPropertyExpression.Constructor in
+  let module C = ObjectPropertyExpression_Constructor in
   match ope.data with
   | C.ObjectProperty op -> add_ObjectProperty_pc ont op pc
   | C.InverseObjectProperty op -> add_ObjectProperty_pc ont op pc;
@@ -358,7 +358,7 @@ and propagate_ObjectPropertyExpression_pc ont ope pc =
 
 let rec add_ClassExpression_pc ont ce pc =
   let module M = ClassExpression.Map in
-  let module C = ClassExpression.Constructor in
+  let module C = ClassExpression_Constructor in
   begin match ce.data with
     | C.Class _ -> ()
     | _ -> ont.record_ComplexClassExpression <-
@@ -369,7 +369,7 @@ let rec add_ClassExpression_pc ont ce pc =
   end;
   propagate_ClassExpression_pc ont ce pc
 and propagate_ClassExpression_pc ont ce pc =
-  let module C = ClassExpression.Constructor in
+  let module C = ClassExpression_Constructor in
   match ce.data with
   | C.Class c -> add_Class_pc ont c pc
   | C.ObjectIntersectionOf (ce, cce) ->
@@ -438,7 +438,7 @@ and propagate_ClassExpression_pc ont ce pc =
 
 let add_ObjectPropertyAxiom ont opa =
   let module S = ObjectPropertyAxiom.Set in
-  let module C = ObjectPropertyAxiom.Constructor in
+  let module C = ObjectPropertyAxiom_Constructor in
   if not (S.mem opa ont.record_ObjectPropertyAxiom) then
     begin
       ont.record_ObjectPropertyAxiom <- S.add opa
@@ -476,7 +476,7 @@ let add_ObjectPropertyAxiom ont opa =
 
 let add_ClassExpressionAxiom ont cea =
   let module S = ClassExpressionAxiom.Set in
-  let module C = ClassExpressionAxiom.Constructor in
+  let module C = ClassExpressionAxiom_Constructor in
   if not (S.mem cea ont.record_ClassExpressionAxiom) then
     begin
       ont.record_ClassExpressionAxiom <- S.add cea
@@ -496,7 +496,7 @@ let add_ClassExpressionAxiom ont cea =
 
 let add_Assertion ont a =
   let module S = Assertion.Set in
-  let module C = Assertion.Constructor in
+  let module C = Assertion_Constructor in
   if not (S.mem a ont.record_Assertion) then
     begin
       ont.record_Assertion <- S.add a

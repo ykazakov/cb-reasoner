@@ -1,2 +1,3 @@
 <main>:    include
 <libs>:    include
+<tests>:   include

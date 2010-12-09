@@ -1,3 +1,7 @@
+(* Modules for manipulating with OWL 2 objects such as classes, class      *)
+(* expressions and axioms; uses camlp4 preprocessor to generate hash,      *)
+(* equality and comparison functions                                       *)
+
 open CommonTypes
 open Consed.T
 
@@ -26,79 +30,104 @@ module CommonConsed : sig
 	end
 end
 
+(**================= Auxiliary Modules ==================**)
+
+module O_string : sig
+	type t = string
+end
+
+module O_int : sig
+	type t = int
+end
+  
+module O_list : sig
+	type 'a t = 'a list
+end
+
+module O_option :sig
+	type 'a t = 'a option
+end
+
 (**======================== IRIs ========================**)
 
-module IRI : sig
-	module Constructor : sig
-		type t =
-			| IRI of string
-	end
-	include CommonConsed.S with type elt = Constructor.t
+module rec IRI_Constructor : sig
+  save
+ 	| IRI of O_string
+  make_type	
+end  
+
+and IRI : sig	
+	include CommonConsed.S with type elt = IRI_Constructor.t
 	val str_of : t -> string
 end
 
 (**====================== NodeIDs =======================**)
 
-module NodeID : sig
-	module Constructor : sig
-		type t =
-			| NodeID of string
-	end
-	include CommonConsed.S with type elt = Constructor.t
+and NodeID_Constructor : sig	
+  save
+   | NodeID of O_string
+  make_type
+	val str_of : t -> string
+end
+	
+and NodeID : sig	
+	include CommonConsed.S with type elt = NodeID_Constructor.t
 	val str_of : t -> string
 end
 
 (**====================== Datatypes =====================**)
 
-module Datatype : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
-			| Rdfs_Literal
-			| Owl_real
-			| Owl_rational
-			| Xsd_decimal
-			| Xsd_integer
-			| Xsd_nonNegativeInteger
-			| Xsd_nonPositiveInteger
-			| Xsd_positiveInteger
-			| Xsd_negativeInteger
-			| Xsd_long
-			| Xsd_int
-			| Xsd_short
-			| Xsd_byte
-			| Xsd_unsignedLong
-			| Xsd_unsignedInt
-			| Xsd_unsignedShort
-			| Xsd_unsignedByte
-			| Xsd_double
-			| Xsd_float
-			| Rdf_PlainLiteral
-			| Xsd_string
-			| Xsd_normalizedString
-			| Xsd_token
-			| Xsd_language
-			| Xsd_Name
-			| Xsd_NCName
-			| Xsd_NMTOKEN
-			| Xsd_boolean
-			| Xsd_hexBinary
-			| Xsd_base64Binary
-			| Xsd_anyURI
-			| Xsd_dateTime
-			| Xsd_dateTimeStamp
-			| Rdf_XMLLiteral
-	end
-	include CommonExtended.S with type t = Constructor.t
+and Datatype_Constructor : sig
+  save
+    | IRI of IRI
+    | Rdfs_Literal
+    | Owl_real
+    | Owl_rational
+    | Xsd_decimal
+    | Xsd_integer
+    | Xsd_nonNegativeInteger
+    | Xsd_nonPositiveInteger
+    | Xsd_positiveInteger
+    | Xsd_negativeInteger
+    | Xsd_long
+    | Xsd_int
+    | Xsd_short
+    | Xsd_byte
+    | Xsd_unsignedLong
+    | Xsd_unsignedInt
+    | Xsd_unsignedShort
+    | Xsd_unsignedByte
+    | Xsd_double
+    | Xsd_float
+    | Rdf_PlainLiteral
+    | Xsd_string
+    | Xsd_normalizedString
+    | Xsd_token
+    | Xsd_language
+    | Xsd_Name
+    | Xsd_NCName
+    | Xsd_NMTOKEN
+    | Xsd_boolean
+    | Xsd_hexBinary
+    | Xsd_base64Binary
+    | Xsd_anyURI
+    | Xsd_dateTime
+    | Xsd_dateTimeStamp
+    | Rdf_XMLLiteral
+  make_type
 	val str_of : t -> string
+end
+
+and Datatype : sig	 
+	include CommonExtended.S with type t = Datatype_Constructor.t
+	val str_of : t -> string	
 end
 
 (**================== Constraining Facets ===============**)
 
-module ConstrainingFacet : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
+and ConstrainingFacet_Constructor : sig
+		save
+			| IRI of IRI
 			| Xsd_minInclusive
 			| Xsd_maxInclusive
 			| Xsd_minExclusive
@@ -108,43 +137,52 @@ module ConstrainingFacet : sig
 			| Xsd_maxLength
 			| Xsd_pattern
 			| Rdf_langRange
-	end
-	include CommonExtended.S with type t = Constructor.t
+		make_type
+		val str_of : t -> string
+end
+
+and ConstrainingFacet : sig	
+	include CommonExtended.S with type t = ConstrainingFacet_Constructor.t
 	val str_of : t -> string
 end
 
 (**================= Object Properties ==================**)
 
-module ObjectProperty : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
+and ObjectProperty_Constructor : sig
+		save
+			| IRI of IRI
 			| TopObjectProperty
 			| BottomObjectProperty
-	end
-	include CommonConsed.S with type elt = Constructor.t
-	val str_of : t -> string
+		make_type
+		val str_of : t -> string
+end
+
+and ObjectProperty : sig
+  include CommonConsed.S with type elt = ObjectProperty_Constructor.t
+  val str_of : t -> string
 end
 
 (**=================== Data Properties ==================**)
 
-module DataProperty : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
+and DataProperty_Constructor : sig
+		save
+			| IRI of IRI
 			| TopDataProperty
 			| BottomDataProperty
-	end
-	include CommonExtended.S with type t = Constructor.t
+		make_type
+		val str_of : t -> string
+end
+
+and DataProperty : sig		 
+	include CommonExtended.S with type t = DataProperty_Constructor.t
 	val str_of : t -> string
 end
 
 (**================ Annotation Properties ===============**)
 
-module AnnotationProperty : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
+and AnnotationProperty_Constructor : sig
+		save
+			| IRI of IRI
 			| Rdfs_label
 			| Rdfs_comment
 			| Rdfs_seeAlso
@@ -154,241 +192,249 @@ module AnnotationProperty : sig
 			| Owl_priorVersion
 			| Owl_backwardCompatibleWith
 			| Owl_incompatibleWith
-	end
-	include CommonExtended.S with type t = Constructor.t
+		make_type
+		val str_of : t -> string
+end
+
+and AnnotationProperty : sig	
+	include CommonExtended.S with type t = AnnotationProperty_Constructor.t
 	val str_of : t -> string
 end
 
 (**====================== Classes =======================**)
 
-module Class : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
+and Class_Constructor : sig
+		save
+			| IRI of IRI
 			| Thing
 			| Nothing
-	end
-	include CommonExtended.S with type t = Constructor.t
+		make_type
+		val str_of : t -> string
+end
+
+and Class : sig		
+	include CommonExtended.S with type t = Class_Constructor.t
 	val str_of : t -> string
 end
 
 (**==================== Individuals =====================**)
 
-module Individual : sig
-	module Constructor : sig
-		type t =
-			| NamedIndividual of IRI.t
-			| AnonymousIndividual of NodeID.t
-	end
-	include CommonExtended.S with type t = Constructor.t
+and Individual_Constructor : sig
+		save
+			| NamedIndividual of IRI
+			| AnonymousIndividual of NodeID
+		make_type
+		val str_of : t -> string
+end
+
+and Individual : sig
+	include CommonExtended.S with type t = Individual_Constructor.t
 	val str_of : t -> string
 end
 
 (**======================= Literals =====================**)
 
-module Literal : sig
-	module Constructor : sig
-		type t =
-			| TypedLiteral of string * Datatype.t
-			| StringLiteralNoLanguage of string
-			| StringLiteralWithLanguage of string * string
-	end
-	include CommonConsed.S with type elt = Constructor.t
+and Literal_Constructor : sig
+		save
+			| TypedLiteral of O_string * Datatype
+			| StringLiteralNoLanguage of O_string
+			| StringLiteralWithLanguage of O_string * O_string
+		make_type
 end
+
+and Literal : (CommonConsed.S with type elt = Literal_Constructor.t)
 
 (**============ Object Property Expressions =============**)
 
-module ObjectPropertyExpression : sig
-	module Constructor : sig
-		type t =
-			| ObjectProperty of ObjectProperty.t
-			| InverseObjectProperty of ObjectProperty.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and ObjectPropertyExpression_Constructor : sig
+		save
+			| ObjectProperty of ObjectProperty
+			| InverseObjectProperty of ObjectProperty
+		make_type
 end
+
+and ObjectPropertyExpression : (CommonConsed.S with type elt = ObjectPropertyExpression_Constructor.t)
 
 (**============= Data Property Expressions ==============**)
 
-module DataPropertyExpression : sig
-	module Constructor : sig
-		type t =
-			| DataProperty of DataProperty.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and DataPropertyExpression_Constructor : sig
+		save
+			| DataProperty of DataProperty
+		make_type
 end
+
+and DataPropertyExpression : (CommonConsed.S with type elt = DataPropertyExpression_Constructor.t)
 
 (**==================== Data Ranges =====================**)
 
-module DataRange : sig
-	module Constructor : sig
-		type t =
-			| Datatype of Datatype.t
-			| DataIntersectionOf of t consed list
-			| DataUnionOf of t consed list
-			| DataComplementOf of t consed
-			| DataOneOf of Literal.t list
-			| DatatypeRestriction of Datatype.t * ((ConstrainingFacet.t * Literal.t) list)
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and DataRange_Constructor : sig
+		save
+			| Datatype of Datatype
+			| DataIntersectionOf of DataRange O_list
+			| DataUnionOf of DataRange O_list
+			| DataComplementOf of DataRange
+			| DataOneOf of Literal O_list
+			| DatatypeRestriction of Datatype * ((ConstrainingFacet * Literal) O_list)
+		make_type		
 end
+
+and DataRange : (CommonConsed.S with type elt = DataRange_Constructor.t)
 
 (**==================== Class Expressions ==================**)
 
-module ClassExpression : sig
-	module Constructor : sig
-		type t =
-			| Class of Class.t
-			| ObjectIntersectionOf of t consed * t consed
-			(*|      | ObjectIntersectionOfb of t consed * t consed*)
-			| ObjectUnionOf of t consed * t consed
-			(*|      | ObjectUnionOfb of t consed * t consed*)
-			| ObjectComplementOf of t consed
-			| ObjectOneOf of Individual.t list
-			| ObjectSomeValuesFrom of ObjectPropertyExpression.t * (t consed)
-			| ObjectAllValuesFrom of ObjectPropertyExpression.t * (t consed)
-			| ObjectHasValue of ObjectPropertyExpression.t * Individual.t
-			| ObjectHasSelf of ObjectPropertyExpression.t
-			| ObjectMinCardinality of int * ObjectPropertyExpression.t * (t consed option)
-			| ObjectMaxCardinality of int * ObjectPropertyExpression.t * (t consed option)
-			| ObjectExactCardinality of int * ObjectPropertyExpression.t * (t consed option)
-			| DataSomeValuesFrom of DataPropertyExpression.t list * DataRange.t
-			| DataAllValuesFrom of DataPropertyExpression.t list * DataRange.t
-			| DataHasValue of DataPropertyExpression.t * Literal.t
-			| DataMinCardinality of int * DataPropertyExpression.t * (DataRange.t option)
-			| DataMaxCardinality of int * DataPropertyExpression.t * (DataRange.t option)
-			| DataExactCardinality of int * DataPropertyExpression.t * (DataRange.t option)
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and ClassExpression_Constructor : sig
+	 save
+	    | Class of Class
+			| ObjectIntersectionOf of ClassExpression * ClassExpression
+			| ObjectUnionOf of ClassExpression * ClassExpression
+			| ObjectComplementOf of ClassExpression
+			| ObjectOneOf of Individual O_list
+			| ObjectSomeValuesFrom of ObjectPropertyExpression * ClassExpression
+			| ObjectAllValuesFrom of ObjectPropertyExpression * ClassExpression
+			| ObjectHasValue of ObjectPropertyExpression * Individual
+			| ObjectHasSelf of ObjectPropertyExpression
+			| ObjectMinCardinality of O_int * ObjectPropertyExpression * ClassExpression O_option
+			| ObjectMaxCardinality of O_int * ObjectPropertyExpression * ClassExpression O_option
+			| ObjectExactCardinality of O_int * ObjectPropertyExpression * ClassExpression O_option
+			| DataSomeValuesFrom of DataPropertyExpression O_list * DataRange
+			| DataAllValuesFrom of DataPropertyExpression O_list * DataRange
+			| DataHasValue of DataPropertyExpression * Literal
+			| DataMinCardinality of O_int * DataPropertyExpression * DataRange O_option
+			| DataMaxCardinality of O_int * DataPropertyExpression * DataRange O_option
+			| DataExactCardinality of O_int * DataPropertyExpression * DataRange O_option
+   make_type		
 end
+
+and ClassExpression : (CommonConsed.S with type elt = ClassExpression_Constructor.t)
 
 (**================= Class ExpressionAxioms ================**)
 
-module ClassExpressionAxiom : sig
-	module Constructor : sig
-		type t =
-			| SubClassOf of ClassExpression.t * ClassExpression.t
-			| EquivalentClasses of ClassExpression.t list
-			| DisjointClasses of ClassExpression.t list
-			| DisjointUnion of Class.t * ClassExpression.t list
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and ClassExpressionAxiom_Constructor : sig
+		save
+			| SubClassOf of ClassExpression * ClassExpression
+			| EquivalentClasses of ClassExpression O_list
+			| DisjointClasses of ClassExpression O_list
+			| DisjointUnion of Class * ClassExpression O_list
+		make_type
 end
+
+and ClassExpressionAxiom : (CommonConsed.S with type elt = ClassExpressionAxiom_Constructor.t)
 
 (**================= Object Property Axioms ================**)
 
-module ObjectPropertyAxiom : sig
-	module Constructor : sig
-		type t =
-			| SubObjectPropertyOf of ObjectPropertyExpression.t list * ObjectPropertyExpression.t
-			| EquivalentObjectProperties of ObjectPropertyExpression.t list
-			| DisjointObjectProperties of ObjectPropertyExpression.t list
-			| InverseObjectProperties of ObjectPropertyExpression.t * ObjectPropertyExpression.t
-			| ObjectPropertyDomain of ObjectPropertyExpression.t * ClassExpression.t
-			| ObjectPropertyRange of ObjectPropertyExpression.t * ClassExpression.t
-			| FunctionalObjectProperty of ObjectPropertyExpression.t
-			| InverseFunctionalObjectProperty of ObjectPropertyExpression.t
-			| ReflexiveObjectProperty of ObjectPropertyExpression.t
-			| IrreflexiveObjectProperty of ObjectPropertyExpression.t
-			| SymmetricObjectProperty of ObjectPropertyExpression.t
-			| AsymmetricObjectProperty of ObjectPropertyExpression.t
-			| TransitiveObjectProperty of ObjectPropertyExpression.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and ObjectPropertyAxiom_Constructor : sig
+		save
+			| SubObjectPropertyOf of ObjectPropertyExpression O_list * ObjectPropertyExpression
+			| EquivalentObjectProperties of ObjectPropertyExpression O_list
+			| DisjointObjectProperties of ObjectPropertyExpression O_list
+			| InverseObjectProperties of ObjectPropertyExpression * ObjectPropertyExpression
+			| ObjectPropertyDomain of ObjectPropertyExpression * ClassExpression
+			| ObjectPropertyRange of ObjectPropertyExpression * ClassExpression
+			| FunctionalObjectProperty of ObjectPropertyExpression
+			| InverseFunctionalObjectProperty of ObjectPropertyExpression
+			| ReflexiveObjectProperty of ObjectPropertyExpression
+			| IrreflexiveObjectProperty of ObjectPropertyExpression
+			| SymmetricObjectProperty of ObjectPropertyExpression
+			| AsymmetricObjectProperty of ObjectPropertyExpression
+			| TransitiveObjectProperty of ObjectPropertyExpression
+		make_type
 end
+
+and ObjectPropertyAxiom : (CommonConsed.S with type elt = ObjectPropertyAxiom_Constructor.t)
 
 (**================= Data Property Axioms ================**)
 
-module DataPropertyAxiom : sig
-	module Constructor : sig
-		type t =
-			| SubDataPropertyOf of DataPropertyExpression.t * DataPropertyExpression.t
-			| EquivalentDataProperties of DataPropertyExpression.t list
-			| DisjointDataProperties of DataPropertyExpression.t list
-			| DataPropertyDomain of DataPropertyExpression.t * ClassExpression.t
-			| DataPropertyRange of DataPropertyExpression.t * DataRange.t
-			| FunctionalDataProperty of DataPropertyExpression.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and DataPropertyAxiom_Constructor : sig
+		save
+			| SubDataPropertyOf of DataPropertyExpression * DataPropertyExpression
+			| EquivalentDataProperties of DataPropertyExpression O_list
+			| DisjointDataProperties of DataPropertyExpression O_list
+			| DataPropertyDomain of DataPropertyExpression * ClassExpression
+			| DataPropertyRange of DataPropertyExpression * DataRange
+			| FunctionalDataProperty of DataPropertyExpression
+		make_type
 end
+
+and DataPropertyAxiom : (CommonConsed.S with type elt = DataPropertyAxiom_Constructor.t)
 
 (**================= Datatype Definitions =================**)
 
-module DatatypeDefinition : sig
-	module Constructor : sig
-		type t =
-			| DatatypeDefinition of Datatype.t * DataRange.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and DatatypeDefinition_Constructor : sig
+	save
+			| DatatypeDefinition of Datatype * DataRange
+	make_type
 end
+
+and DatatypeDefinition : (CommonConsed.S with type elt = DatatypeDefinition_Constructor.t)
 
 (**========================= Keys =========================**)
 
-module Key : sig
-	module Constructor : sig
-		type t =
-			| HasKey of ClassExpression.t * ObjectPropertyExpression.t list * DataPropertyExpression.t list
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and Key_Constructor : sig
+		save
+			| HasKey of ClassExpression * ObjectPropertyExpression O_list * DataPropertyExpression O_list
+		make_type
 end
+
+and Key : (CommonConsed.S with type elt = Key_Constructor.t)
 
 (**====================== Assertions ======================**)
 
-module Assertion : sig
-	module Constructor : sig
-		type t =
-			| SameIndividual of Individual.t list
-			| DifferentIndividuals of Individual.t list
-			| ClassAssertion of ClassExpression.t * Individual.t
-			| ObjectPropertyAssertion of ObjectPropertyExpression.t * Individual.t * Individual.t
-			| NegativeObjectPropertyAssertion of ObjectPropertyExpression.t * Individual.t * Individual.t
-			| DataPropertyAssertion of DataPropertyExpression.t * Individual.t * Literal.t
-			| NegativeDataPropertyAssertion of DataPropertyExpression.t * Individual.t * Literal.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and Assertion_Constructor : sig
+		save
+			| SameIndividual of Individual O_list
+			| DifferentIndividuals of Individual O_list
+			| ClassAssertion of ClassExpression * Individual
+			| ObjectPropertyAssertion of ObjectPropertyExpression * Individual * Individual
+			| NegativeObjectPropertyAssertion of ObjectPropertyExpression * Individual * Individual
+			| DataPropertyAssertion of DataPropertyExpression * Individual * Literal
+			| NegativeDataPropertyAssertion of DataPropertyExpression * Individual * Literal
+		make_type
 end
+
+and Assertion : (CommonConsed.S with type elt = Assertion_Constructor.t)
 
 (**================= Annotation Subjects ==================**)
 
-module AnnotationSubject : sig
-	module Constructor : sig
-		type t =
-			| IRI of IRI.t
-			| AnonymousIndividual of NodeID.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and AnnotationSubject_Constructor : sig
+		save
+			| IRI of IRI
+			| AnonymousIndividual of NodeID
+		make_type
 end
+
+and AnnotationSubject : (CommonConsed.S with type elt = AnnotationSubject_Constructor.t)
 
 (**================== Annotation Values ===================**)
 
-module AnnotationValue : sig
-	module Constructor : sig
-		type t =
-			| AnonymousIndividual of NodeID.t
-			| IRI of IRI.t
-			| Literal of Literal.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and AnnotationValue_Constructor : sig
+		save
+			| AnonymousIndividual of NodeID
+			| IRI of IRI
+			| Literal of Literal
+		make_type
 end
+
+and AnnotationValue : (CommonConsed.S with type elt = AnnotationValue_Constructor.t)
 
 (**===================== Annotations ======================**)
 
-module Annotation : sig
-	module Constructor : sig
-		type t =
-			| Annotation of t consed list * AnnotationProperty.t * AnnotationValue.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and Annotation_Constructor : sig
+		save
+			| Annotation of Annotation O_list * AnnotationProperty * AnnotationValue
+		make_type
 end
+
+and Annotation : (CommonConsed.S with type elt = Annotation_Constructor.t)
 
 (**================== Annotation Axioms ===================**)
 
-module AnnotationAxiom : sig
-	module Constructor : sig
-		type t =
-			| AnnotationAssertion of Annotation.t list * AnnotationProperty.t * AnnotationSubject.t * AnnotationValue.t
-			| SubAnnotationPropertyOf of Annotation.t list * AnnotationProperty.t * AnnotationProperty.t
-			| AnnotationPropertyDomain of Annotation.t list * AnnotationProperty.t * IRI.t
-			| AnnotationPropertyRange of Annotation.t list * AnnotationProperty.t * IRI.t
-	end
-	include (CommonConsed.S with type elt = Constructor.t)
+and AnnotationAxiom_Constructor : sig
+		save
+			| AnnotationAssertion of Annotation O_list * AnnotationProperty * AnnotationSubject * AnnotationValue
+			| SubAnnotationPropertyOf of Annotation O_list * AnnotationProperty * AnnotationProperty
+			| AnnotationPropertyDomain of Annotation O_list * AnnotationProperty * IRI
+			| AnnotationPropertyRange of Annotation O_list * AnnotationProperty * IRI
+		make_type
 end
+
+and AnnotationAxiom : (CommonConsed.S with type elt = AnnotationAxiom_Constructor.t)

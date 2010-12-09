@@ -11,8 +11,8 @@ type t = ObjectProperty.t * bool
 (* the function of converting roles from standard syntax to ther           *)
 (* representation                                                          *)
 let to_elt r = match r.data with
-  | ObjectPropertyExpression.Constructor.ObjectProperty ar -> ar, true
-  | ObjectPropertyExpression.Constructor.InverseObjectProperty ar -> ar, false
+  | ObjectPropertyExpression_Constructor.ObjectProperty ar -> ar, true
+  | ObjectPropertyExpression_Constructor.InverseObjectProperty ar -> ar, false
 
 let inv (a, ata) = a, (not ata)
 

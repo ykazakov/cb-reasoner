@@ -2,8 +2,8 @@
 open Owl2
 open Consed.T
 module O = Ontology
-module OPE = ObjectPropertyExpression.Constructor
-module CE = ClassExpression.Constructor
+module OPE = ObjectPropertyExpression_Constructor
+module CE = ClassExpression_Constructor
 
 (* information stored a concept [C] *)
 type concept_record = {
@@ -228,7 +228,7 @@ let init ont =
   let concept_index = ClassExpression.HMap.create (estimated_concept_index_size ont) in
   let role_index = ObjectProperty.HMap.create (estimated_role_index_size ont) in
   
-  let module A = ClassExpressionAxiom.Constructor in
+  let module A = ClassExpressionAxiom_Constructor in
   O.iter_record_ClassExpressionAxiom (fun ax -> match ax.data with
           | A.SubClassOf (ce1, ce2) ->
               add_c_impl concept_index ce1 ce2
@@ -265,7 +265,7 @@ let init ont =
   (* insert propagation rules for bottom into the index *)
   if O.has_positive_Nothing ont || O.has_positive_ComplementOf ont then (
     let bot = O.cons_ClassExpression ont
-        (ClassExpression.Constructor.Class Class.Constructor.Nothing) in
+        (ClassExpression_Constructor.Class Class_Constructor.Nothing) in
     ObjectProperty.Set.iter ( fun ar ->
         (* [bot] implies [(all ar bot)] and [(all (inv ar) bot)] *)
             add_succ concept_index role_index bot ar bot true;
@@ -306,7 +306,7 @@ let init ont =
               add_c_impl concept_index c2 c;
           | CE.ObjectComplementOf d when Polarity.Counter.get_pos p > 0 ->
               let bot = O.cons_ClassExpression ont
-                  (ClassExpression.Constructor.Class Class.Constructor.Nothing) in
+                  (ClassExpression_Constructor.Class Class_Constructor.Nothing) in
               add_c_conj concept_index c d bot;
               add_c_conj concept_index d c bot;
           | CE.ObjectSomeValuesFrom (h, d) when Polarity.Counter.get_neg p > 0 ->

@@ -5,8 +5,8 @@ open Consed.T
 module O = Ontology
 module R = ReasonerTBox
 module H = Class.HMap
-module C = Class.Constructor
-module CE = ClassExpression.Constructor
+module C = Class_Constructor
+module CE = ClassExpression_Constructor
 module PB = ProgressBar
 
 (* we will use atomic concept sets for sorting of atomic concepts *)
@@ -37,13 +37,13 @@ let iter_a_impl f t ont top_equiv =
 													match de.data with
 													| CE.Class d ->
 															begin match d with
-																| Class.Constructor.IRI _ ->
+																| Class_Constructor.IRI _ ->
 																		if not (S.mem d top_equiv) then (
 																			implied_sorted := S.add d !implied_sorted;
 																		)
-																| Class.Constructor.Nothing ->
+																| Class_Constructor.Nothing ->
 																		bot_equiv := S.add c !bot_equiv
-																| Class.Constructor.Thing -> ()
+																| Class_Constructor.Thing -> ()
 															end
 													| _ -> () (* collect only classes *)
 									)	(R.find_implied t ce);
@@ -76,14 +76,14 @@ let iter_a_eq_di f t ont top_equiv =
 													match de.data with
 													| CE.Class d ->
 															begin match d with
-																| Class.Constructor.IRI _ ->
+																| Class_Constructor.IRI _ ->
 																		if not (S.mem d top_equiv) then (
 																			implied := ClassExpression.Set.add de !implied;
 																			implied_sorted := S.add d !implied_sorted;
 																		)
-																| Class.Constructor.Nothing ->
+																| Class_Constructor.Nothing ->
 																		bot_equiv := S.add c !bot_equiv
-																| Class.Constructor.Thing -> ()
+																| Class_Constructor.Thing -> ()
 															end
 													| _ -> () (* collect only classes *)
 									)	(R.find_implied t ce);
@@ -161,8 +161,8 @@ let compute t ont =
 		let (eqv, sup, sub) = find_record a in
 		H.replace taxonomy a (eqv, sup, S.add b sub)
 	in
-	let top = Class.Constructor.Thing in
-	let bot = Class.Constructor.Nothing in
+	let top = Class_Constructor.Thing in
+	let bot = Class_Constructor.Nothing in
 	let top_eqv = find_top_equiv t in
 	(* check if the ontology is consistent *)
 	if S.mem bot top_eqv then begin
@@ -310,8 +310,8 @@ let print_lisp_fast t ont out =
 		H.replace tax_record a
 			(equiv, parents, S.add b children)
 	in
-	let top = Class.Constructor.Thing in
-	let bot = Class.Constructor.Nothing in
+	let top = Class_Constructor.Thing in
+	let bot = Class_Constructor.Nothing in
 	let top_equiv = find_top_equiv t in
 	(* check if the ontology is consistent *)
 	if S.mem bot top_equiv then (
