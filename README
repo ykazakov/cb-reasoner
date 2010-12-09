@@ -1,94 +1,86 @@
-CB is an experimental reasoner for ontologies based
-on a new kind of "consequence-based" reasoning procedure.
+OVERVIEW:
 
-Currently CB supports a fragment of OWL which corresponds
-to the DL Horn-SHIF.  
+CB is an experimental reasoner for ontologies based on a new kind of
+"consequence-based" reasoning procedure.
 
+Currently CB supports a fragment of OWL-2 which corresponds to the DL 
+Horn-SHIF. The theory behind CB is described in the paper:
 
-I. Installation
+[1] Y. Kazakov. Consequence-Driven Reasoning for Horn SHIQ Ontologies.
+    In IJCAI, pages 2040-2045, July 11-17 2009.
 
-In order to compile the program from sources, you will need
-to have a suitable ocaml installation v.3.10 or later wich
-is bundled with ocamlbuild. You also need make tools if to use 
-make file. Given these, to compile the program, just issue
+CONTENTS:
 
-make
+  INSTALL               instructions for installation
+  LICENSE               license and copyright notice
+  Makefile              main Makefile
+  README                this file
+  bin                   reasoner executables
+  examples              usage examples
+  src                   program source files
 
-if successful, this will create an executable cb in ./bin 
-directory. This executable can be consequently copied in any
-convenient location.
+COPYRIGHT:
 
+All files in [src] are Copyright (c) 2009, 2010 Yevgeny Kazakov
+<yevgeny.kazakov@comlab.ox.ac.uk> and Oxford University
 
-II. Usage
+INSTALLATION:
 
-For the usage options type:
+See the file INSTALL for installation instructions.
 
-./cb --help     [on Linux & Mac]
-  cb --help     [on Windows]
+USAGE:
 
-For displaying progress bars, CB uses ANSI codes. 
-Please use an ansi-capable terminal for optimal results.
+The binaries are located in the directory [/bin].
+For the usage options type from this directory:
 
-Example:
+  ./cb --help     [on Linux & Mac]
+  cb --help       [on Windows]
 
-./cb -c -o galen_tax.owl galen.owl
+For usage examples see the directory [/examples]
 
-will load the ontology from file "galen.owl", classifies it,
-and output the sorted taxonomy into the file "galen_tax.owl"
+REQUIREMENTS:
 
+Currently CB can only read ontologies in OWL-2 functional-style syntax
+and supports a subsets of the constructors corresponding to Horn-SHIF.
+The reasoner will ignore any constructor or axiom type that it doesn't
+support and issue a warning. Classes starting with unsupported
+constructors will be treated as anonymous classes, which should not
+result in any unsound inferences.
 
-III. Syntax
+An SHIF ontology is Horn if:
 
-Currently CB can read ontologies in OWL 2 founctional-style
-syntax and supports a subsets of the constructors corresponding
-to Horn SHIF language. At the moment CB does not support assertions
-or datatypes and will ignore any of these constructors.
-
-For the description of OWL 2 functional-style syntax, see:
-http://www.w3.org/TR/owl2-syntax/
-
-
-IV. Conversion.
-
-If you have an owl file [ontology.owl] in OWL or OWL 2 XML RDF syntax,
-you can convert it into a functional syntax using Protege 4.
-For this, the ontology [ontology.owl] should be loaded into Protege 4
-and saved using menu File > Save as... > OWL Functional Syntax. 
-
-Note that some versions of Protege 4 produce outdated OWL 2 syntax
-and the result may reqire manual editing
-(OWL 2 is still being standardazied and therefore subject to changes).
-Alternatively, you could build the version of Protege 4 that uses
-the most recent OWL api from the sources:
-http://smi-protege.stanford.edu/repos/protege/protege4/protege-standalone/branches/protege4_1_port
-
-
-V. Horn ontologies.
-
-Currently the algorithm implemented in CB is complete only for Horn-SHIF 
-ontologies.The reasoner will still work for (full) SHIF ontologies, but 
-it is not guaranteed to produce all subsumption relations.
-
-    An ontology is Horn if:
-
-    * It does not contain "ObjectUnionOf" positively, e.g., 
-      within a class expressions C in the following axioms and their synonyms:
+  * It does not contain "ObjectUnionOf" positively, e.g., 
+    within a class expressions C in the following axioms and their 
+    synonyms:
       
       EquivalentClasses(C D)
       EquivalentClasses(D C)
       SubClassOf(D C)
 
-    * It does not contain "ObjectComplementOf" and "ObjectAllValuesFrom" 
-      negatively, e.g., within a class expressions C in the following axioms 
-      and their synonyms:
+  * It does not contain "ObjectComplementOf" and "ObjectAllValuesFrom" 
+    negatively, e.g., within a class expressions C in the following 
+    axioms and their synonyms:
  
       EquivalentClasses(C D)
       EquivalentClasses(D C)
       SubClassOf(C D)
 
-    The reasoner will issue a warning if the ontology is not Horn.
-    Please print the statistics for ontology to find out the reasons why 
-    ontology is not Horn:
+The reasoner will issue a warning if the ontology is not Horn.
+Please print ontology information to find out the reasons why 
+ontology is not Horn:
 
-    ./cb -i ontology.owl  [Linux & Mac]
-      cb -i ontology.owl  [Windows]
+  ./cb -i ontology.owl  [Linux & Mac]
+    cb -i ontology.owl  [Windows]
+
+For the description of OWL-2 functional-style syntax, see:
+http://www.w3.org/TR/owl2-syntax/
+
+OWL ontologies in other formats can be converted into OWL-2 functional
+syntax using Protege version 4.1 or higher.
+
+http://protege.stanford.edu/
+
+To convert a file [ontology.owl], open it in Protege and save using
+the menu:
+
+  File > Save as... > OWL Functional Syntax.

@@ -9,8 +9,8 @@ module S = ObjectProperty.Set
 module M = ObjectProperty.Map
 module RS = Brole.Set
 module RM = Brole.Map
-module RC = ObjectPropertyExpression.Constructor
-module AC = ObjectPropertyAxiom.Constructor
+module RC = ObjectPropertyExpression_Constructor
+module AC = ObjectPropertyAxiom_Constructor
 
 (* information stored for every role [r] *)
 type role_record = {

@@ -1,10 +1,15 @@
-OCAMLBUILD = ocamlbuild
+SUBDIRS = src
 
-main: 
-	ocamlbuild cb.native; \
-	mv _build/src/main/cb.native ./bin/cb; \
-	unlink cb.native
+.PHONY: main clean install $(SUBDIRS)
+
+main: $(SUBDIRS)
 
 clean: 
-	ocamlbuild -clean; \
-	rm -f bin/cb
+	@$(MAKE) TARGET=clean
+
+$(SUBDIRS):
+	@echo descending to $@
+	@$(MAKE) -C $@ $(TARGET)
+
+install:
+	cp ./src/cb.native ./bin/cb

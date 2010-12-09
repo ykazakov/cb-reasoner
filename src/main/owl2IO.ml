@@ -109,7 +109,7 @@ let fprint_Individual f dt = F.pp_print_string f (str_of_Individual dt)
 (**======================= Literals =====================**)
 
 let fprint_Literal f lt =
-  let module C = Literal.Constructor in
+  let module C = Literal_Constructor in
   begin match lt.data with
     | C.TypedLiteral (lf, dt) ->
         F.fprintf f "@[<hv 2>\"%s\"^^" lf;
@@ -130,7 +130,7 @@ let str_of_Literal lt =
 (**============ Object Property Expressions =============**)
 
 let fprint_ObjectPropertyExpression f ope =
-  let module C = ObjectPropertyExpression.Constructor in
+  let module C = ObjectPropertyExpression_Constructor in
   begin match ope.data with
     | C.ObjectProperty op ->
         fprint_ObjectProperty f op;
@@ -159,7 +159,7 @@ let str_of_ObjectPropertyExpression ope =
 (**============= Data Property Expressions ==============**)
 
 let fprint_DataPropertyExpression f dpe =
-  let module C = DataPropertyExpression.Constructor in
+  let module C = DataPropertyExpression_Constructor in
   begin match dpe.data with
     | C.DataProperty dp -> fprint_DataProperty f dp
   end
@@ -173,7 +173,7 @@ let str_of_DataPropertyExpression dpe =
 (**==================== Data Ranges =====================**)
 
 let rec fprint_DataRange f dr =
-  let module C = DataRange.Constructor in
+  let module C = DataRange_Constructor in
   begin match dr.data with
     | C.Datatype dt -> fprint_Datatype f dt
     | C.DataIntersectionOf dr_set ->
@@ -195,7 +195,7 @@ let rec fprint_DataRange f dr =
     | C.DatatypeRestriction (dt, cf_lt_lst) ->
         F.fprintf f "@[<hv 2>DataOneOf(@,";
         P.fprint_list f
-          (fun f (cf, lt) ->
+          (fun f (cf, lt) -> 						
                 fprint_ConstrainingFacet f cf;
                 F.fprintf f "@ ";
                 fprint_Literal f lt;
@@ -212,7 +212,7 @@ let str_of_DataRange dr =
 (**==================== Class Expressions ==================**)
 
 let rec fprint_ClassExpression f ce =
-  let module C = ClassExpression.Constructor in
+  let module C = ClassExpression_Constructor in
   let rec frpint_ObjectIntersectionOf f ce =
     begin match ce.data with
       | C.ObjectIntersectionOf (cce, ce) ->
@@ -346,7 +346,7 @@ let str_of_ClassExpression ce =
 (**================= Class Expression Axioms ===============**)
 
 let fprint_ClassExpressionAxiom f ax =
-  let module C = ClassExpressionAxiom.Constructor in
+  let module C = ClassExpressionAxiom_Constructor in
   begin match ax.data with
     | C.SubClassOf (ce1, ce2) ->
         F.fprintf f "@[<hv 2>SubClassOf(@,";
@@ -379,7 +379,7 @@ let str_of_ClassExpressionAxiom ax =
 (**================= Object Property Axioms ================**)
 
 let fprint_ObjectPropertyAxiom f ax =
-  let module C = ObjectPropertyAxiom.Constructor in
+  let module C = ObjectPropertyAxiom_Constructor in
   begin match ax.data with
     | C.SubObjectPropertyOf (op_ch, op) ->
         F.fprintf f "@[<hv 2>SubObjectPropertyOf(@,";
@@ -452,7 +452,7 @@ let str_of_ObjectPropertyAxiom ax =
 (**================= Data Property Axioms ================**)
 
 let fprint_DataPropertyAxiom f ax =
-  let module C = DataPropertyAxiom.Constructor in
+  let module C = DataPropertyAxiom_Constructor in
   begin match ax.data with
     | C.SubDataPropertyOf (sdpe, dpe) ->
         F.fprintf f "@[<hv 2>SubDataPropertyOf(@,";
@@ -495,7 +495,7 @@ let str_of_DataPropertyAxiom ax =
 (**====================== Assertions ======================**)
 
 let fprint_Assertion f ax =
-  let module C = Assertion.Constructor in
+  let module C = Assertion_Constructor in
   begin match ax.data with
     | C.SameIndividual i_set ->
         F.fprintf f "@[<hv 2>SameIndividual(@,";

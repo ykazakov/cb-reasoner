@@ -1,1 +1,2 @@
 <*.*>: use_unix
+<owl2.ml> or <owl2.mli>: use_typeext, camlp4orf

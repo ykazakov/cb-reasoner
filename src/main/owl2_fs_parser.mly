@@ -10,30 +10,30 @@ open Owl2
 
 (* abbreviations for commonly used modules *)
 module O = Ontology
-module IRI = IRI.Constructor
-module NID = NodeID.Constructor
-module D = Datatype.Constructor
-module CF = ConstrainingFacet.Constructor
-module OP = ObjectProperty.Constructor 
-module DP = DataProperty.Constructor
-module AP = AnnotationProperty.Constructor
-module C = Class.Constructor
-module I = Individual.Constructor
-module L = Literal.Constructor
-module OPE = ObjectPropertyExpression.Constructor
-module DPE = DataPropertyExpression.Constructor
-module DR = DataRange.Constructor
-module CE = ClassExpression.Constructor
-module CEA = ClassExpressionAxiom.Constructor
-module OPA = ObjectPropertyAxiom.Constructor
-module DPA = DataPropertyAxiom.Constructor
-module DD = DatatypeDefinition.Constructor
-module K = Key.Constructor
-module A = Assertion.Constructor
-module AS = AnnotationSubject.Constructor
-module AV = AnnotationValue.Constructor
-module AN = Annotation.Constructor
-module AA = AnnotationAxiom.Constructor
+module IRI = IRI_Constructor
+module NID = NodeID_Constructor
+module D = Datatype_Constructor
+module CF = ConstrainingFacet_Constructor
+module OP = ObjectProperty_Constructor 
+module DP = DataProperty_Constructor
+module AP = AnnotationProperty_Constructor
+module C = Class_Constructor
+module I = Individual_Constructor
+module L = Literal_Constructor
+module OPE = ObjectPropertyExpression_Constructor
+module DPE = DataPropertyExpression_Constructor
+module DR = DataRange_Constructor
+module CE = ClassExpression_Constructor
+module CEA = ClassExpressionAxiom_Constructor
+module OPA = ObjectPropertyAxiom_Constructor
+module DPA = DataPropertyAxiom_Constructor
+module DD = DatatypeDefinition_Constructor
+module K = Key_Constructor
+module A = Assertion_Constructor
+module AS = AnnotationSubject_Constructor
+module AV = AnnotationValue_Constructor
+module AN = Annotation_Constructor
+module AA = AnnotationAxiom_Constructor
 
 (* temporary variables to track the polarity *)
 let pol = ref Polarity.Both

@@ -752,11 +752,11 @@ let pop_stack_ed_root t =
 
 (* === a function for processing positive implied concepts *)
 let process_is_implied_new_pos t index is ce =
-  let module C = ClassExpression.Constructor in
+  let module C = ClassExpression_Constructor in
   match ce.data with
   | C.Class c ->
       begin match c with
-        | Class.Constructor.Nothing ->
+        | Class_Constructor.Nothing ->
         (* removing everything from [is] except for [ce = bottom] *)        
             ClassExpression.HSet.clear is.implied;
             ClassExpression.HSet.add is.implied ce;
@@ -998,7 +998,7 @@ let saturate ont =
   if O.has_negative_Thing ont then (
     (* negative top means there could be a global inconsistency *)
     let top = O.cons_ClassExpression ont
-        (ClassExpression.Constructor.Class Class.Constructor.Thing) in
+        (ClassExpression_Constructor.Class Class_Constructor.Thing) in
     t.top <- Some top;
     let is = rt_cons t (ClassExpression.Set.singleton top) ClassExpression.Set.empty
     in process_is t index is;
@@ -1007,7 +1007,7 @@ let saturate ont =
     PB.step ();
   );
   O.iter_record_Class ( fun ac _ ->
-          let c = O.cons_ClassExpression ont (ClassExpression.Constructor.Class ac) in
+          let c = O.cons_ClassExpression ont (ClassExpression_Constructor.Class ac) in
           let _ = rt_cons t (ClassExpression.Set.singleton c) ClassExpression.Set.empty in
           (*|          is.required <- true;*)
           process_t t index;
