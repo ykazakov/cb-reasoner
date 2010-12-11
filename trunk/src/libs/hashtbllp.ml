@@ -19,8 +19,10 @@ let create initial_size =
   { size = 0; keys = Array.create s blank; data = Array.create s blank }
 
 let clear h =
-  Array.fill h.keys 0 (Array.length h.keys) blank;
-  Array.fill h.data 0 (Array.length h.data) blank;
+  let base = Array.length h.keys in
+  for i = 0 to base - 1 do    
+    if h.keys.(i) != blank then h.keys.(i) <- blank 
+  done;
   h.size <- 0
 
 let copy h =

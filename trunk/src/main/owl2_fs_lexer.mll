@@ -4,11 +4,12 @@ http://www.w3.org/TR/owl2-syntax/
 
 {
 open Owl2_fs_parser
-    
+module PB = ProgressBar
+		    
 let update_pos lexbuf =  
   let pos = lexbuf.Lexing.lex_curr_p in
   let p = pos.Lexing.pos_cnum in
-  ProgressBar.set_state p;
+  PB.set_state p;
   lexbuf.Lexing.lex_curr_p <- 
   { pos with
     Lexing.pos_lnum = succ pos.Lexing.pos_lnum;
@@ -203,7 +204,7 @@ and token = parse
 (* Structural Symbols *)
     [' ' '\t']                           { token lexbuf }
   | '\n'                                 { update_pos lexbuf; token lexbuf}  
-  | eof                                  { update_pos lexbuf; EOF }  
+  | eof                                  { update_pos lexbuf; PB.finish (); EOF }  
   | '('                                  { LeftParen    }
   | ')'                                  { RightParen   }
   | '='                                  { Equal        }

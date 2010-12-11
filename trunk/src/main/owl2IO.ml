@@ -3,7 +3,6 @@
 open Consed.T
 open Owl2
 module O = Ontology
-module PB = ProgressBar
 module F = Format
 
 (**=========== loading from the input channel ===========**)
@@ -553,15 +552,14 @@ let str_of_Assertion ax =
 
 (**======================== Ontology =======================**)
 
-let fprint_ontology f ont =
-  (* periodically flushing to improve the performance of GC *)
+let fprint_ontology f ont =  
   F.fprintf f "@[<v 2>Ontology(";
   O.iter_record_ObjectPropertyAxiom
-    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_ObjectPropertyAxiom f ax) ont;
+    (fun ax -> F.fprintf f "@;"; fprint_ObjectPropertyAxiom f ax) ont;
   O.iter_record_ClassExpressionAxiom
-    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_ClassExpressionAxiom f ax) ont;
+    (fun ax -> F.fprintf f "@;"; fprint_ClassExpressionAxiom f ax) ont;
   O.iter_record_Assertion
-    (fun ax -> F.fprintf f "@?@[<v 2>@,"; fprint_Assertion f ax) ont;
+    (fun ax -> F.fprintf f "@;"; fprint_Assertion f ax) ont;
   F.fprintf f "@;<0 -2>)@]%!";
 ;;
 

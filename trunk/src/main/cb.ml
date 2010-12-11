@@ -31,11 +31,6 @@ let () =
   mem_control_init ()
 ;;
 
-type output_format =
-  | Fowl
-  | Impl
-  | Lisp
-
 let _ =
   
   let input = ref "" in
@@ -43,7 +38,6 @@ let _ =
   let classify = ref false in
   let distill = ref false in
   let print_info = ref false in
-  let output_format = ref Fowl in
   
   parse
     ( align([
@@ -51,9 +45,6 @@ let _ =
           ("-c", Set classify, " classifies the ontology");
           ("-d", Set distill, " do not classify but parse and output the ontology");
           ("-o", String (fun s -> output := s),"[file] outputs the result to [file] instead of standard output (by default)");
-          ("-fowl", Unit (fun () -> output_format := Fowl), " set the taxonomy output format to functional style owl 2 syntax (default)");
-          ("-impl", Unit (fun () -> output_format := Impl), " output all subsumptions in functional style owl 2 syntax");
-          ("-lisp", Unit (fun () -> output_format := Lisp), " set the taxonomy output format to lisp");
           ]))
     
     (fun s -> input := s)
@@ -103,12 +94,7 @@ let _ =
     
     Printf.fprintf stderr "3. Formatting the taxonomy...  ";
     flush stderr;
-    (
-      match !output_format with
-      | Fowl -> ConceptTaxonomy.print_fowl iss ont out_channel
-      | Impl -> ConceptTaxonomy.print_fowl_impl iss ont out_channel
-      | Lisp -> ConceptTaxonomy.print_lisp iss ont out_channel
-    );
+		ConceptTaxonomy.print_fowl iss ont out_channel    
   );
   
   print_memory_usage ();

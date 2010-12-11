@@ -2,9 +2,7 @@ OCAMLBUILD = ocamlbuild
 
 .PHONY: main clean
 
-main: cb.native
-
-cb.native:
+main:
 	ocamlbuild cb.native
 
 clean: 

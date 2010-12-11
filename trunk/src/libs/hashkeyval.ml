@@ -25,7 +25,7 @@ let create initial_size =
 
 let clear h =
 	for i = 0 to Array.length h.data - 1 do
-		h.data.(i) <- Empty
+		if h.data.(i) != Empty then h.data.(i) <- Empty
 	done;
 	h.size <- 0
 
