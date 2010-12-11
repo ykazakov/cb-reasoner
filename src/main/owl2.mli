@@ -67,7 +67,6 @@ and NodeID_Constructor : sig
   save
    | NodeID of O_string
   make_type
-	val str_of : t -> string
 end
 	
 and NodeID : sig	
@@ -115,7 +114,6 @@ and Datatype_Constructor : sig
     | Xsd_dateTimeStamp
     | Rdf_XMLLiteral
   make_type
-	val str_of : t -> string
 end
 
 and Datatype : sig	 
@@ -138,7 +136,6 @@ and ConstrainingFacet_Constructor : sig
 			| Xsd_pattern
 			| Rdf_langRange
 		make_type
-		val str_of : t -> string
 end
 
 and ConstrainingFacet : sig	
@@ -154,7 +151,6 @@ and ObjectProperty_Constructor : sig
 			| TopObjectProperty
 			| BottomObjectProperty
 		make_type
-		val str_of : t -> string
 end
 
 and ObjectProperty : sig
@@ -170,7 +166,6 @@ and DataProperty_Constructor : sig
 			| TopDataProperty
 			| BottomDataProperty
 		make_type
-		val str_of : t -> string
 end
 
 and DataProperty : sig		 
@@ -192,8 +187,7 @@ and AnnotationProperty_Constructor : sig
 			| Owl_priorVersion
 			| Owl_backwardCompatibleWith
 			| Owl_incompatibleWith
-		make_type
-		val str_of : t -> string
+		make_type		
 end
 
 and AnnotationProperty : sig	
@@ -209,7 +203,6 @@ and Class_Constructor : sig
 			| Thing
 			| Nothing
 		make_type
-		val str_of : t -> string
 end
 
 and Class : sig		
@@ -224,7 +217,6 @@ and Individual_Constructor : sig
 			| NamedIndividual of IRI
 			| AnonymousIndividual of NodeID
 		make_type
-		val str_of : t -> string
 end
 
 and Individual : sig

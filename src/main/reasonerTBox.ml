@@ -997,6 +997,7 @@ let saturate ont =
 	
   if O.has_negative_Thing ont then (
     (* negative top means there could be a global inconsistency *)
+		PB.incr_max ();
     let top = O.cons_ClassExpression ont
         (ClassExpression_Constructor.Class Class_Constructor.Thing) in
     t.top <- Some top;
@@ -1014,6 +1015,7 @@ let saturate ont =
           (* incrementing the progress bar *)
           PB.step ();
     ) ont;
+	PB.finish ();	
 (*| print_live_statistics ();*)
   (*|  HI.print_stats ();*)
   (*|  HE.print_stats ();*)
