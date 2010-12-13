@@ -1,1 +1,1 @@
-"pa_typeext.ml": use_camlp4, camlp4orf
+"pa_typeext.ml": use_camlp4, pp(camlp4o -parser Camlp4OCamlRevisedParser -parser Camlp4QuotationCommon -parser Camlp4OCamlRevisedQuotationExpander -parser Camlp4GrammarParser -parser Camlp4OCamlParser)
