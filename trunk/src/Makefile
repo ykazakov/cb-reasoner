@@ -1,12 +1,20 @@
-OCAMLBUILD = ocamlbuild
-OCAMLOPT = $(shell which ocamlopt)
+OCAMLOPT = $(shell PATH=$(PATH) which ocamlopt)
+OCAMLBUILD = ocamlbuild -byte-plugin -ocamlopt $(OCAMLOPT)
 
-.PHONY: main clean
+.PHONY: main clean java clib
 
 main:
-# for cross-compilation, different versions of ocamlbuild and ocamlopt can be used
-	$(OCAMLBUILD) -byte-plugin -ocamlopt $(OCAMLOPT) cb.native
+	$(OCAMLBUILD) main/cb.native
 
+all:
+	$(OCAMLBUILD) main/cb.native clib/libcb.a java/jni/libjcb.jnilib java/cb.jar java/cb-src.jar
+
+clib:	
+	$(OCAMLBUILD) clib/libcb.a
+
+java:	
+	$(OCAMLBUILD) java/jni/libjcb.jnilib java/cb.jar java/cb-src.jar
+	
 clean: 
 	ocamlbuild -clean;\
 	rm -f cb.native

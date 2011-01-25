@@ -5,7 +5,7 @@ type t =
   | Negative
   | Both
 
-let inverse = function
+let invert = function
   | Positive -> Negative
   | Negative -> Positive
   | Both -> Both
@@ -37,7 +37,7 @@ module Counter = struct
   let get_total c = c.pos + c.neg
   
   let zero = { pos = 0; neg = 0}
-  let inverse c = { pos = c.neg; neg = c.pos }
+  let invert c = { pos = c.neg; neg = c.pos }
   let symm c = { pos = c.pos + c.neg; neg = c.pos + c.neg }
   let to_elt = function
     | Positive -> { zero with pos = 1}

@@ -5,7 +5,7 @@
 
 (* hash tables on conced values *)
 
-open Consed.T
+open Consed
 
 (* We do dynamic hashing, and resize when the array becomes too long. *)
 

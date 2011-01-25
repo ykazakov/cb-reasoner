@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!-- Copyright 2008 by Oxford University; see license.txt for details -->
+
+<project name="CB" default="combined" basedir=".">
+
+    <property name="version" value="0.0"/>
+
+    <!-- general info -->
+    <property name="homepage" value="http://cb-reasoner.com/"/>
+	<property environment="env"/>
+	<property name = "protege.home"      location="${env.PROTEGE_HOME}"/>
+	<property file = "${protege.home}/build.properties"/>
+	<property name = "protege.plugins"   location="${protege.home}/plugins"/>
+	
+    <!-- structure of output files -->
+    <property name="projectroot" value="."/>
+    <property name="builddir" value="${projectroot}/build"/>
+    <property name="classdir" value="${builddir}/class"/>
+	
+    <!-- structure of the release -->
+    <property name="releasedir" value="${builddir}/release"/>
+    <property name="CBPlugInJar" value="${releasedir}/org.semanticweb.${ant.project.name}.jar"/>
+    <property name="javadocdir" value="${builddir}/javadoc"/>
+    
+    <!-- libraries -->
+    <property name="libdir" value="${projectroot}/lib"/>
+    <property name="owlapi" value="${libdir}/owlapi-3.1.0.jar"/>
+    <property name="protegeapp" value="${libdir}/org.protege.editor.core.application-4.1.jar"/>
+    <property name="protegeowl" value="${libdir}/org.protege.editor.owl-4.1.jar"/>
+	<property name="cblib" value="${libdir}/cb.jar"/>
+	<property name="jnilib" value="${libdir}/libjcb.jnilib"/>
+	
+    <!-- to generate a debug version, use -Ddebug=on argument when running ant -->
+    <property name="debug" value="off"/>
+
+    <!-- SOURCE PATHS -->
+    <path id="sourcepath">
+        <pathelement path="${projectroot}/src"/>
+    	<pathelement path="${projectroot}"/>
+    </path>
+    
+    <!-- CLASS PATHS -->
+    <path id="classpath">
+        <pathelement location="${owlapi}"/>
+        <pathelement location="${protegeapp}"/>
+        <pathelement location="${protegeowl}"/>
+    	<pathelement location="${cblib}"/>
+    </path>
+    
+    <!-- RELEASE TARGETS  -->
+
+    <target name="clean">
+        <delete dir="${builddir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classdir}"/>
+        <javac includeantruntime="false" destdir="${classdir}" deprecation="yes" debug="${debug}" debuglevel="lines,vars,source" target="1.5" source="1.5">
+            <compilerarg value="-Xlint:all-path"/>
+            <src refid="sourcepath"/>
+            <classpath refid="classpath"/>
+        </javac>
+        <copy todir="${classdir}" file="src/plugin.xml">
+            <filterset>
+                <filter token="VERSION" value="${version}"/>
+            </filterset>
+        </copy>
+    </target>
+    
+    <target name="javadoc">
+        <mkdir dir="${javadocdir}"/>
+        <javadoc sourcepathref="sourcepath" destdir="${javadocdir}" access="protected" author="false" version="true" use="true">
+            <classpath refid="classpath"/>
+            <package name="org.semanticweb.cb.*"/>
+        </javadoc>
+    </target>
+    
+    <target name="unpack-libs">
+        <unjar src="${cblib}" dest="${classdir}"/>
+    </target>
+        	
+    <target name="CB-protege-plugin" depends="clean,compile,unpack-libs">
+    	<mkdir dir="${releasedir}"/>
+        <jar jarfile="${CBPlugInJar}">
+            <manifest>
+                <attribute name="Implementation-Title" value="CB"/>
+                <attribute name="Implementation-Vendor" value="Oxford University"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Main-Class" value="org.semanticweb.cb.CBReasoner"/>
+                <attribute name="Bundle-ManifestVersion" value="2"/>
+                <attribute name="Bundle-Name" value="CB Reasoner"/>
+                <attribute name="Bundle-SymbolicName" value="org.semanticweb.cb;singleton:=true"/>
+                <attribute name="Bundle-Category" value="protege"/>
+                <attribute name="Bundle-Description" value="An OWL 2 EL reasoner"/>
+                <attribute name="Bundle-DocURL" value="${homepage}"/>
+                <attribute name="Bundle-Vendor" value="Yevgeny Kazakov"/>
+                <attribute name="Bundle-Version" value="${version}"/>
+                <attribute name="Bundle-Activator" value="org.protege.editor.core.plugin.DefaultPluginActivator"/>
+                <attribute name="Bundle-ClassPath" value=".,org.semanticweb.${ant.project.name}.jar"/>
+                <attribute name="Require-Bundle" value="org.eclipse.equinox.registry,org.eclipse.equinox.common,org.protege.editor.core.application;bundle-version=4.1,org.protege.editor.owl;bundle-version=4.1,org.semanticweb.owl.owlapi;bundle-version=3.1"/>
+            	<attribute name="Bundle-NativeCode" value="libjcb.jnilib; osname=MacOSX; osname=Mac OS X; processor=x86_64; processor=x86; "/>
+                <!-- <attribute name="Update-Url" value="${updatefile}"/> -->
+            </manifest>
+            <fileset dir="${classdir}"/>        	
+            <fileset file="${jnilib}"/>
+            <!-- <zipfileset dir="${builddir}/Licenses"  prefix="Licenses"/> -->
+        </jar>
+    </target>
+
+    <target name="publish">
+        <!-- <echo>${protege.plugins}</echo> -->
+        <copy todir="${protege.plugins}" file="${CBPlugInJar}"/>
+    </target>
+    	
+	<target name="combined" depends="javadoc,CB-protege-plugin,publish"/>
+    
+</project>

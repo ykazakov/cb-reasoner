@@ -1,6 +1,6 @@
 (* sets of consed elements based on a variation of Patricia trees *)
 
-open Consed.T
+open Consed
 
 type 'a elt = 'a consed
 let intright x y z = x lxor y > x lxor z

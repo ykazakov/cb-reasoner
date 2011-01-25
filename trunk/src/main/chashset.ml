@@ -1,6 +1,6 @@
 (* hash sets on consed values based on hashtbl in the standard library *)
 
-open Consed.T
+open Consed
 
 (* We do dynamic hashing, and resize the table and rehash the elements     *)
 (* when buckets become too long.                                           *)

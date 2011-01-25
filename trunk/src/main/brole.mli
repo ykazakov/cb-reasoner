@@ -3,7 +3,7 @@
 (* inverse: [(a,true)] represents role [a], [(a,false)] represents role    *)
 (* [inverse a]                                                             *)
 
-open Owl2
+open Owl
 
 type t = ObjectProperty.t * bool
 
