@@ -1,2 +1,2 @@
-<*.*>: use_unix
-<owl2.ml> or <owl2.mli>: use_typeext, camlp4o
+<*.native>: use_unix
+<owl.ml> or <owl.mli>: use_typeext, camlp4o

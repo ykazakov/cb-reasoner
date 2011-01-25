@@ -1,17 +1,16 @@
 (* Main Program *)
 
 open Arg
-module PB = ProgressBar
 
 let mem_control_init () =
   let old_controls = Gc.get () in
   let new_controls = { old_controls with
     Gc.minor_heap_size = 4 * 1024 * 1024 * 8 / Sys.word_size; (* 4MB *)
     Gc.major_heap_increment = 8 * 1024 * 1024 * 8 / Sys.word_size; (* 8MB *)
-    Gc.max_overhead = 100000;
-    Gc.space_overhead = 400;
+    Gc.max_overhead =   1000;
+    Gc.space_overhead = 100;
   } in
-  Gc.set new_controls
+  Gc.set new_controls	
 
 let print_memory_usage () =
   let stat = Gc.stat () and control = Gc.get () in
@@ -50,9 +49,8 @@ let _ =
     (fun s -> input := s)
     
     (" CB is a Consequence-Based reasoner for Horn-SHIF ontologies." ^
-      "\n This program is free for non-commersial use." ^
-      " No warranty. Use at your own risk!" ^
-      "\n Copyright (c) 2009 Yevgeny Kazakov <yevgeny.kazakov@comlab.ox.ac.uk> and Oxford University" ^
+      "\n Copyright (c) 2009, 2010, 2011 Yevgeny Kazakov" ^ 
+			"\n <yevgeny.kazakov@comlab.ox.ac.uk> and Oxford University" ^
       "\n\n Usage: cb [OPTIONS]... [ONTOLOGY]" ^
       "\n Loads [ONTOLOGY] in funcional-style OWL 2 syntax and optionally prints the" ^
       "\n information about the ontology and computes the ontology taxonomy." ^
@@ -68,34 +66,31 @@ let _ =
   in
   
   Printf.fprintf stderr "CB is processing the ontology from %s\n"
-    (if !input = "" then "standard input" else "\""^ !input ^ "\""); flush stderr;
-  Printf.fprintf stderr "1. Loading the ontology...     "; flush stderr;
-  PB.init (in_channel_length in_channel);
-  let ont = Ontology.create () in
-  Owl2IO.load_Ontology_from_channel ont in_channel;
+    (if !input = "" then "standard input" else "\""^ !input ^ "\""); flush stderr;    
   
+(*|	let ont = Owl_io_actions.load_Ontology_from_channel in_channel "1. Loading the ontology:" in*)
+  let pm = Progress_monitor.of_out_channel stderr in
+	let pt = Progress_tracker.of_progress_monitor pm in
+	
+  let ont = Owl_io.load_Ontology_from_channel [pt] in_channel in
+	
   if !print_info then (
-    Ontology.print_staticstics ont stderr;
-    Printf.fprintf stderr "Expressivity: %s\n" (OntologyLanguage.str_expressivity ont);
-    Printf.fprintf stderr "==============================\n";
+    Ontology.print_info ont stderr;    
     Pervasives.flush stderr;
   );
   
   if !distill then (
     classify := false;
-    Owl2IO.print_ontology_ch ont out_channel
+    Owl_io.print_ontology_ch pt ont out_channel
   );
   
   if !classify then (
-    if not (OntologyLanguage.is_horn ont) then
+    if not (Ontology_language.is_horn ont) then
       Printf.fprintf stderr "   Warning! Reasoning can be incomplete (the ontology is not Horn)!\n";
-    Printf.fprintf stderr "2. Classifying the ontology... "; flush stderr;
-    let iss = ReasonerTBox.saturate ont in
-    
-    Printf.fprintf stderr "3. Formatting the taxonomy...  ";
+		let iss = Saturation.compute [pt] ont in    
     flush stderr;
-		ConceptTaxonomy.print_fowl iss ont out_channel    
+		Class_taxonomy.print_fowl [pt] iss ont out_channel     
   );
-  
+	
   print_memory_usage ();
   print_cpu_time ();

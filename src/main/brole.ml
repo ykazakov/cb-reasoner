@@ -3,8 +3,8 @@
 (* ther role is inverse: [(a,true)] represents role [a], [(a,false)]       *)
 (* represents role [inverse a]                                             *)
 
-open Owl2
-open Consed.T
+open Owl
+open Consed
 
 type t = ObjectProperty.t * bool
 
@@ -12,11 +12,11 @@ type t = ObjectProperty.t * bool
 (* representation                                                          *)
 let to_elt r = match r.data with
   | ObjectPropertyExpression_Constructor.ObjectProperty ar -> ar, true
-  | ObjectPropertyExpression_Constructor.InverseObjectProperty ar -> ar, false
+  | ObjectPropertyExpression_Constructor.ObjectInverseOf ar -> ar, false
 
 let inv (a, ata) = a, (not ata)
 
-let str (a, ata) = Owl2IO.str_of_ObjectProperty a ^ (if ata then "" else "-")
+let str (a, ata) = Owl_io.str_of_ObjectProperty a ^ (if ata then "" else "-")
 
 module Set = struct
   module S = ObjectProperty.Set

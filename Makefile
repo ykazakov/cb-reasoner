@@ -1,11 +1,14 @@
 SUBDIRS = src
 
-.PHONY: main clean install $(SUBDIRS)
+.PHONY: main all clean install $(SUBDIRS)
 
 main: $(SUBDIRS)
 
 clean: 
-	@$(MAKE) TARGET=clean
+	@$(MAKE) TARGET=$@
+
+all: 
+	@$(MAKE) TARGET=$@
 
 $(SUBDIRS):
 	@echo descending to $@

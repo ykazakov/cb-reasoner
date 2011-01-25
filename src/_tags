@@ -1,3 +1,5 @@
-<main>:    include
-<libs>:    include
-<tests>:   include
+<main>: include
+<libs>: include
+<tests>: include
+<java>: include
+<clib>: include

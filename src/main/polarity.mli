@@ -1,7 +1,7 @@
 (** functions for manipulations with polarities **)
 
   type t = Positive | Negative | Both
-  val inverse : t -> t
+  val invert : t -> t
   val str : t -> string
   val is_positive : t -> bool
   val is_negative : t -> bool
@@ -14,7 +14,7 @@ sig
   val get_neg : t -> int
   val get_total : t -> int
   val zero : t
-  val inverse : t -> t
+  val invert : t -> t
   val symm : t -> t
   val to_elt : p -> t
   val succ : t -> p -> t

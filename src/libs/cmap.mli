@@ -1,6 +1,6 @@
 (* maps on integers based on a variation of Patricia trees *)
 
-open Consed.T
+open Consed
 
 module type Type = sig
   type t
