@@ -9,7 +9,6 @@ type t = ObjectProperty.t * bool
 
 val to_elt : ObjectPropertyExpression.t -> t
 val inv: t -> t
-val str: t -> string
 
 module Set : sig
   type elt = t
@@ -49,7 +48,6 @@ module Set : sig
   val inv : t -> t
   val symm : t -> t
   val atomic : t -> ObjectProperty.Set.t
-  val str : t -> string
 end
 
 module Map : sig

@@ -1,11 +1,11 @@
 module PM = Progress_monitor
 
-(* wrapping the project tracker together with all relevant functions *)
+(* wrapping the progress tracker together with all relevant functions *)
 type t = {
 	(* starting the progress monitor with a message *)
 	start : string -> int -> unit;
 	(* increment the current progress value *)
-	step: unit -> unit;
+	step: ?step: int -> unit -> unit;
 	(* decrement the current status value *)
 	back: unit -> unit;
 	(* jumping to a particular status value *)
@@ -21,8 +21,8 @@ type t = {
 (* useful functions for lists of progress trackers *)
 let start pt_lst message max = 
 	List.iter (fun pt -> pt.start message max) pt_lst
-let step pt_lst = 
-	List.iter (fun pt -> pt.step ()) pt_lst
+let step ?(step = 1) pt_lst = 
+	List.iter (fun pt -> pt.step ~step: step ()) pt_lst
 let back pt_lst =
 	List.iter (fun pt -> pt.back ()) pt_lst
 let jump pt_lst state =
@@ -55,8 +55,8 @@ let of_progress_monitor pm =
 						pt.current_state <- 0;
 						pm.PM.start message
 			);
-		step = (fun () ->
-						pt.current_state <- succ pt.current_state;
+		step = (fun ?(step = 1) () ->
+						pt.current_state <- pt.current_state + step;
 						report ()
 			);
 		back = (fun () ->

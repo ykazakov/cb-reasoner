@@ -12,7 +12,7 @@ open Owl
 module O = Ontology
 module IRIc = IRI_Constructor
 module NIDc = NodeID_Constructor
-module Dc = Datatype_Constructor
+module DTc = Datatype_Constructor
 module CFc = ConstrainingFacet_Constructor
 module OPc = ObjectProperty_Constructor
 module DPc = DataProperty_Constructor
@@ -20,6 +20,7 @@ module APc = AnnotationProperty_Constructor
 module Cc = Class_Constructor
 module Ic = Individual_Constructor
 module Lc = Literal_Constructor
+module Dc = Declaration_Constructor
 module OPEc = ObjectPropertyExpression_Constructor
 module DPEc = DataPropertyExpression_Constructor
 module DRc = DataRange_Constructor
@@ -34,12 +35,6 @@ module ASc = AnnotationSubject_Constructor
 module AVc = AnnotationValue_Constructor
 module ANc = Annotation_Constructor
 module AAc = AnnotationAxiom_Constructor
-
-(* temporary variables to track the polarity *)
-let pol = ref Polarity.Both
-(* for constructors with both polarities such as ObjectExactCardinality *)
-let pol_save = ref Polarity.Both 
-let pol_nesting = ref 0
 
 (* the variable to store the ontology *)
 let ont = ref None
@@ -182,59 +177,59 @@ owl_axioms: /* empty */       { }
 
 /* 4.1 Real Numbers, Decimal Numbers, and Integers */
 owl_DTRealDecimalIntegers:
-  | Owl_real                 { Dc.Owl_real }
-  | Owl_rational             { Dc.Owl_rational }  
-  | Xsd_decimal              { Dc.Xsd_decimal }
-  | Xsd_integer              { Dc.Xsd_integer }
-  | Xsd_nonNegativeInteger   { Dc.Xsd_nonNegativeInteger }
-  | Xsd_nonPositiveInteger   { Dc.Xsd_nonPositiveInteger }
-  | Xsd_positiveInteger      { Dc.Xsd_positiveInteger }
-  | Xsd_negativeInteger      { Dc.Xsd_negativeInteger }
-  | Xsd_long                 { Dc.Xsd_long }
-  | Xsd_int                  { Dc.Xsd_int }
-  | Xsd_short                { Dc.Xsd_short }
-  | Xsd_byte                 { Dc.Xsd_byte }
-  | Xsd_unsignedLong         { Dc.Xsd_unsignedLong }
-  | Xsd_unsignedInt          { Dc.Xsd_unsignedInt }
-  | Xsd_unsignedShort        { Dc.Xsd_unsignedShort }
-  | Xsd_unsignedByte         { Dc.Xsd_unsignedByte }
+  | Owl_real                 { DTc.Owl_real }
+  | Owl_rational             { DTc.Owl_rational }  
+  | Xsd_decimal              { DTc.Xsd_decimal }
+  | Xsd_integer              { DTc.Xsd_integer }
+  | Xsd_nonNegativeInteger   { DTc.Xsd_nonNegativeInteger }
+  | Xsd_nonPositiveInteger   { DTc.Xsd_nonPositiveInteger }
+  | Xsd_positiveInteger      { DTc.Xsd_positiveInteger }
+  | Xsd_negativeInteger      { DTc.Xsd_negativeInteger }
+  | Xsd_long                 { DTc.Xsd_long }
+  | Xsd_int                  { DTc.Xsd_int }
+  | Xsd_short                { DTc.Xsd_short }
+  | Xsd_byte                 { DTc.Xsd_byte }
+  | Xsd_unsignedLong         { DTc.Xsd_unsignedLong }
+  | Xsd_unsignedInt          { DTc.Xsd_unsignedInt }
+  | Xsd_unsignedShort        { DTc.Xsd_unsignedShort }
+  | Xsd_unsignedByte         { DTc.Xsd_unsignedByte }
 
 /* 4.2 Floating-Point Numbers */
 owl_DTFloats:
-  | Xsd_double               { Dc.Xsd_double }
-  | Xsd_float                { Dc.Xsd_float }
+  | Xsd_double               { DTc.Xsd_double }
+  | Xsd_float                { DTc.Xsd_float }
 
 /* 4.3 Strings */
 owl_DTStrings:
-  | Rdf_PlainLiteral         { Dc.Rdf_PlainLiteral }
-  | Xsd_string               { Dc.Xsd_string }
-  | Xsd_normalizedString     { Dc.Xsd_normalizedString }
-  | Xsd_token                { Dc.Xsd_token }
-  | Xsd_language             { Dc.Xsd_language }
-  | Xsd_Name                 { Dc.Xsd_Name }
-  | Xsd_NCName               { Dc.Xsd_NCName }
-  | Xsd_NMTOKEN              { Dc.Xsd_NMTOKEN }
+  | Rdf_PlainLiteral         { DTc.Rdf_PlainLiteral }
+  | Xsd_string               { DTc.Xsd_string }
+  | Xsd_normalizedString     { DTc.Xsd_normalizedString }
+  | Xsd_token                { DTc.Xsd_token }
+  | Xsd_language             { DTc.Xsd_language }
+  | Xsd_Name                 { DTc.Xsd_Name }
+  | Xsd_NCName               { DTc.Xsd_NCName }
+  | Xsd_NMTOKEN              { DTc.Xsd_NMTOKEN }
 
 /* 4.4 Boolean Values */
 owl_DTBooleans:
-  | Xsd_boolean              { Dc.Xsd_boolean }
+  | Xsd_boolean              { DTc.Xsd_boolean }
 
 /* 4.5 Binary Data */
 owl_DTBinaries:
-  | Xsd_hexBinary            { Dc.Xsd_hexBinary }
-  | Xsd_base64Binary         { Dc.Xsd_base64Binary }
+  | Xsd_hexBinary            { DTc.Xsd_hexBinary }
+  | Xsd_base64Binary         { DTc.Xsd_base64Binary }
 
 /* 4.6 IRIs */
 owl_DTIRIs:
-  | Xsd_anyURI               { Dc.Xsd_anyURI }
+  | Xsd_anyURI               { DTc.Xsd_anyURI }
 
 /* 4.7 Time Instants */
 owl_DTTimes:
-  | Xsd_dateTimeStamp        { Dc.Xsd_dateTimeStamp }
+  | Xsd_dateTimeStamp        { DTc.Xsd_dateTimeStamp }
 
 /* 4.8 XML Literals */
 owl_DTXMLs:
-  | Rdf_XMLLiteral           { Dc.Rdf_XMLLiteral }
+  | Rdf_XMLLiteral           { DTc.Rdf_XMLLiteral }
 
 /* 5 Entities and Literals */
 
@@ -248,8 +243,8 @@ owl_Class_:
 /* 5.2 Datatypes */
 owl_Datatype: owl_Datatype_     { $1 }
 owl_Datatype_:
-  | owl_IRI                     { Dc.IRI $1 }  
-  | Rdfs_Literal                { Dc.Rdfs_Literal }
+  | owl_IRI                     { DTc.IRI $1 }  
+  | Rdfs_Literal                { DTc.Rdfs_Literal }
   | owl_DTRealDecimalIntegers   { $1 }
   | owl_DTFloats                { $1 }
   | owl_DTStrings               { $1 }
@@ -304,7 +299,7 @@ owl_AnonymousIndividual: owl_nodeID  { Ic.AnonymousIndividual $1 }
 /* 5.7 Literals */
 owl_Literals: /* empty */            { [] }  
   | owl_Literals owl_Literal         { $2 :: $1 }
-owl_Literal: owl_Literal_            { Literal.cons $1 }
+owl_Literal: owl_Literal_            { $1 }
 owl_Literal_:
   | owl_typedLiteral                 { $1 }
   | owl_stringLiteralNoLanguage      { $1 }
@@ -319,14 +314,14 @@ owl_stringLiteralWithLanguage:
 
 /* 5.8 Entity Declarations and Typing */
 owl_Declaration:
-  | Declaration LeftParen owl_axiomAnnotations owl_Entity RightParen  {}  
+  | Declaration LeftParen owl_axiomAnnotations owl_Entity RightParen  { Declaration.cons $4 }  
 owl_Entity:
-  | Class LeftParen owl_Class RightParen                           {}
-  | Datatype LeftParen owl_Datatype RightParen                     {}
-  | ObjectProperty LeftParen owl_ObjectProperty RightParen         {}
-  | DataProperty LeftParen owl_DataProperty RightParen             {}
-  | AnnotationProperty LeftParen owl_AnnotationProperty RightParen {}
-  | NamedIndividual LeftParen owl_NamedIndividual RightParen       {}
+  | Class LeftParen owl_Class RightParen                           { Dc.Class $3 }
+  | Datatype LeftParen owl_Datatype RightParen                     { Dc.Datatype $3 }
+  | ObjectProperty LeftParen owl_ObjectProperty RightParen         { Dc.ObjectProperty $3 }
+  | DataProperty LeftParen owl_DataProperty RightParen             { Dc.DataProperty $3 }
+  | AnnotationProperty LeftParen owl_AnnotationProperty RightParen { Dc.AnnotationProperty $3 }
+  | NamedIndividual LeftParen owl_NamedIndividual RightParen       { Dc.NamedIndividual $3 }
 
 /* 6 Property Expressions */
 owl_ObjectPropertyExpressions:  /* empty */                 { [] }
@@ -440,9 +435,7 @@ owl_ObjectUnionOfrec:
  
 /* 8.1.3 Complement of Class Expressions */
 owl_ObjectComplementOf_:
-  | pol_ObjectComplementOf LeftParen owl_ClassExpression RightParen 
-   { pol := Polarity.invert !pol; CEc.ObjectComplementOf ($3) }
-pol_ObjectComplementOf: ObjectComplementOf {pol := Polarity.invert !pol}
+  | ObjectComplementOf LeftParen owl_ClassExpression RightParen { CEc.ObjectComplementOf ($3) }
 
 /* 8.1.4 Enumeration of Individuals */
 owl_ObjectOneOf_: 
@@ -482,19 +475,17 @@ owl_ObjectMinCardinality_:
 
 /* 8.3.2 Maximum Cardinality */
 owl_ObjectMaxCardinality_:
-  | pol_ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
-    { pol := Polarity.invert !pol; CEc.ObjectMaxCardinality ($3, $4, None) }
-  | pol_ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { pol := Polarity.invert !pol; CEc.ObjectMaxCardinality ($3, $4, Some $5) }
-pol_ObjectMaxCardinality: ObjectMaxCardinality { pol := Polarity.invert !pol }
+  | ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
+    { CEc.ObjectMaxCardinality ($3, $4, None) }
+  | ObjectMaxCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { CEc.ObjectMaxCardinality ($3, $4, Some $5) }
 
 /* 8.3.3 Exact Cardinality */
 owl_ObjectExactCardinality_:
-  | pol_ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
-    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CEc.ObjectExactCardinality ($3, $4, None) }
-  | pol_ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CEc.ObjectExactCardinality ($3, $4, Some $5) }
-pol_ObjectExactCardinality: ObjectExactCardinality { if !pol_nesting = 0 then pol_save := !pol; incr pol_nesting }
+  | ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression RightParen 
+    { CEc.ObjectExactCardinality ($3, $4, None) }
+  | ObjectExactCardinality LeftParen owl_nonNegativeInteger owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { CEc.ObjectExactCardinality ($3, $4, Some $5) }
 
 /* 8.4 Data Property Restrictions */
 
@@ -524,28 +515,26 @@ owl_DataMinCardinality_:
 
 /* 8.5.2 Maximum Cardinality */
 owl_DataMaxCardinality_:
-  | pol_DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
-    { pol := Polarity.invert !pol; CEc.DataMaxCardinality ($3, $4, None) }
-  | pol_DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
-    { pol := Polarity.invert !pol; CEc.DataMaxCardinality ($3, $4, Some $5) } 
-pol_DataMaxCardinality: DataMaxCardinality { pol := Polarity.invert !pol }
+  | DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
+    { CEc.DataMaxCardinality ($3, $4, None) }
+  | DataMaxCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
+    { CEc.DataMaxCardinality ($3, $4, Some $5) } 
 
 /* 8.5.3 Exact Cardinality */
 owl_DataExactCardinality_:
-  | pol_DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
-    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CEc.DataExactCardinality ($3, $4, None) }
-  | pol_DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
-    { decr pol_nesting; if !pol_nesting = 0 then pol := !pol_save; CEc.DataExactCardinality ($3, $4, Some $5) }
-pol_DataExactCardinality: DataExactCardinality { if !pol_nesting = 0 then pol_save := !pol; incr pol_nesting }
+  | DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression RightParen 
+    { CEc.DataExactCardinality ($3, $4, None) }
+  | DataExactCardinality LeftParen owl_nonNegativeInteger owl_DataPropertyExpression owl_DataRange RightParen 
+    { CEc.DataExactCardinality ($3, $4, Some $5) }
 
 /* 9 Axioms */
 owl_Axiom:
-  | owl_Declaration         { }
+  | owl_Declaration         { O.add_Declaration (o()) $1 }
   | owl_ClassAxiom          { O.add_ClassAxiom (o()) $1 }
   | owl_ObjectPropertyAxiom { O.add_ObjectPropertyAxiom (o()) $1 }
-  | owl_DataPropertyAxiom   { let _ = $1 in () }
-  | owl_DatatypeDefinition  { let _ = $1 in () }
-  | owl_HasKey              { let _ = $1 in () }
+  | owl_DataPropertyAxiom   { () }
+  | owl_DatatypeDefinition  { () }
+  | owl_HasKey              { () }
   | owl_Assertion           { O.add_Assertion (o()) $1 }
   | owl_AnnotationAxiom     { }
 owl_axiomAnnotations: /* empty */    {}
@@ -561,10 +550,9 @@ owl_ClassAxiom_:
 
 /* 9.1.1 Subclass Axioms */
 owl_SubClassOf:
-  | pol_SubClassOf LeftParen owl_axiomAnnotations owl_subClassExpression owl_superClassExpression RightParen 
-    { pol := Polarity.Both; CAc.SubClassOf ($4, $5) }
-pol_SubClassOf: SubClassOf { pol := Polarity.Negative }    
-owl_subClassExpression: owl_ClassExpression   { pol := Polarity.Positive; $1 }
+  | SubClassOf LeftParen owl_axiomAnnotations owl_subClassExpression owl_superClassExpression RightParen 
+    { CAc.SubClassOf ($4, $5) }   
+owl_subClassExpression: owl_ClassExpression   { $1 }
 owl_superClassExpression: owl_ClassExpression { $1 }
 
 /* 9.1.2 Equivalent Classes */
@@ -574,11 +562,9 @@ owl_EquivalentClasses:
     
 /* 9.1.3 Disjoint Classes */
 owl_DisjointClasses:
-  | pol_DisjointClasses LeftParen owl_axiomAnnotations owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
-    { pol := Polarity.Both; CAc.DisjointClasses ($4 :: $5 :: $6) }
-pol_DisjointClasses: DisjointClasses { pol := Polarity.Negative }
-    
-            
+  | DisjointClasses LeftParen owl_axiomAnnotations owl_ClassExpression owl_ClassExpression owl_ClassExpressions RightParen 
+    { CAc.DisjointClasses ($4 :: $5 :: $6) }
+                
 /* 9.1.4 Disjoint Union of Class Expressions */
 owl_DisjointUnion:
   | DisjointUnion LeftParen owl_axiomAnnotations owl_Class owl_disjointClassExpressions RightParen 
@@ -634,15 +620,13 @@ owl_InverseObjectProperties:
 
 /* 9.2.5 Object Property Domain */
 owl_ObjectPropertyDomain: 
-  | pol_ObjectPropertyDomain LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { pol := Polarity.Both; OPAc.ObjectPropertyDomain ($4, $5) }
-pol_ObjectPropertyDomain: ObjectPropertyDomain { pol := Polarity.Positive }
+  | ObjectPropertyDomain LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { OPAc.ObjectPropertyDomain ($4, $5) }
 
 /* 9.2.6 Object Property Range */
 owl_ObjectPropertyRange: 
-  | pol_ObjectPropertyRange LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
-    { pol := Polarity.Both; OPAc.ObjectPropertyRange ($4, $5) }
-pol_ObjectPropertyRange: ObjectPropertyRange { pol := Polarity.Positive }
+  | ObjectPropertyRange LeftParen owl_axiomAnnotations owl_ObjectPropertyExpression owl_ClassExpression RightParen 
+    { OPAc.ObjectPropertyRange ($4, $5) }
 
 /* 9.2.7 Functional Object Properties */
 owl_FunctionalObjectProperty: 
@@ -710,9 +694,8 @@ owl_DisjointDataProperties:
 
 /* 9.3.4 Data Property Domain */
 owl_DataPropertyDomain: 
-  | pol_DataPropertyDomain LeftParen owl_axiomAnnotations owl_DataPropertyExpression owl_ClassExpression RightParen 
-    { pol := Polarity.Both; DPAc.DataPropertyDomain ($4, $5) }
-pol_DataPropertyDomain: DataPropertyDomain { pol := Polarity.Positive }
+  | DataPropertyDomain LeftParen owl_axiomAnnotations owl_DataPropertyExpression owl_ClassExpression RightParen 
+    { DPAc.DataPropertyDomain ($4, $5) }
 
 /* 9.3.5 Data Property Range */
 owl_DataPropertyRange: 
@@ -733,10 +716,9 @@ owl_DatatypeDefinition_:
 /* 9.5 Keys */
 owl_HasKey: owl_HasKey_ { Key.cons $1 }
 owl_HasKey_:
-  | pol_HasKey LeftParen owl_axiomAnnotations owl_ClassExpression 
+  | HasKey LeftParen owl_axiomAnnotations owl_ClassExpression 
     LeftParen owl_ObjectPropertyExpressions RightParen LeftParen owl_DataPropertyExpressions RightParen 
-    { pol := Polarity.Both; Kc.HasKey ($4, $6, $9) }
-pol_HasKey: HasKey { pol := Polarity.Negative }
+    { Kc.HasKey ($4, $6, $9) }
 
 /* 9.6 Assertions */
 owl_Assertion: owl_Assertion_           { Assertion.cons $1 }
@@ -764,9 +746,8 @@ owl_DifferentIndividuals:
 
 /* 9.6.3 Class Assertions */
 owl_ClassAssertion: 
-  | pol_ClassAssertion LeftParen owl_axiomAnnotations owl_ClassExpression owl_Individual RightParen 
+  | ClassAssertion LeftParen owl_axiomAnnotations owl_ClassExpression owl_Individual RightParen 
     { Ac.ClassAssertion ($4, $5) }
-pol_ClassAssertion: ClassAssertion { pol := Polarity.Positive }
 
 /* 9.6.4 Positive Object Property Assertions */
 owl_ObjectPropertyAssertion: 

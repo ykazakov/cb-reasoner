@@ -217,11 +217,9 @@ let add_succi c_index r_index c r d p =
 	add_r_succi r_index r c d p;
 ;;
 
-let estimated_concept_index_size ont =
-	O.total_SubClassOf ont + O.total_ObjectIntersectionOf ont
+let estimated_concept_index_size ont = O.count_ClassExpression ont
 
-let estimated_role_index_size ont =
-	Polarity.Counter.get_pos (O.count_ObjectSomeValuesFrom ont)
+let estimated_role_index_size ont = O.count_ObjectPropertyExpression ont
 
 (* initialize the index from an ontology [ont] *)
 let init ont =
@@ -230,7 +228,7 @@ let init ont =
 	let role_index = ObjectProperty.HMap.create (estimated_role_index_size ont) in
 	
 	let module A = ClassAxiom_Constructor in
-	O.iter_record_ClassAxiom (fun ax -> match ax.data with
+	O.iter_record_ClassAxiom (fun ax _ -> match ax.data with
 					| A.SubClassOf (ce1, ce2) ->
 							add_c_impl concept_index ce1 ce2
 					| A.EquivalentClasses ce_lst ->
@@ -252,7 +250,7 @@ let init ont =
 	
 	let ar_ex = ref ObjectProperty.Set.empty in
 	
-	O.iter_record_ComplexClassExpression (fun c p ->
+	O.iter_record_ClassExpression (fun c p ->
 					if Polarity.Counter.get_pos p > 0 then
 						match c.data with
 						| CE.ObjectSomeValuesFrom (r, c1) -> (
@@ -264,7 +262,7 @@ let init ont =
 		) ont;
 	
 	(* insert propagation rules for bottom into the index *)
-	if O.has_positive_Nothing ont || O.has_positive_ComplementOf ont then (
+	if O.has_positive_Nothing ont || O.has_positive_ObjectComplementOf ont then (
 		let bot = ClassExpression.cons
 				(ClassExpression_Constructor.Class Class_Constructor.Nothing) in
 		ObjectProperty.Set.iter ( fun ar ->
@@ -301,7 +299,7 @@ let init ont =
 		ObjectProperty.Set.iter (fun ar -> fsti ar) h_sti;
 	in
 	
-	O.iter_record_ComplexClassExpression (fun c p ->
+	O.iter_record_ClassExpression (fun c p ->
 					match c.data with
 					| CE.ObjectIntersectionOf (c1, c2) | CE.ObjectIntersectionOfrec (c1, c2)
 					when Polarity.Counter.get_neg p > 0 ->

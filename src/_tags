@@ -2,4 +2,5 @@
 <libs>: include
 <tests>: include
 <java>: include
-<clib>: include
+<cwrap>: include
+<protege>: -traverse

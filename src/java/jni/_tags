@@ -1,1 +1,1 @@
-<*.c> or <*.jnilib>: use_cb, use_caml, use_unix, use_jni
+<*.o> or <*.c> or <*.h> or <*.depends> or <*.jnilib>: use_cb, use_caml, use_unix, use_jni

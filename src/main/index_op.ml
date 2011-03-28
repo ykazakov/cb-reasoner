@@ -45,8 +45,7 @@ let create i = {
   inv_funct_roles = S.empty;
 }
 
-let estimated_role_index_size ont =
-  Polarity.Counter.get_pos (O.count_ObjectSomeValuesFrom ont)
+let estimated_role_index_size ont = O.count_ObjectProperty ont
 
 let init ont =
   let index = create (estimated_role_index_size ont) in
@@ -90,7 +89,7 @@ let init ont =
         index.funct_roles <- S.add a index.funct_roles
   in
   
-  O.iter_record_ObjectPropertyAxiom (fun ax -> match ax.data with
+  O.iter_record_ObjectPropertyAxiom (fun ax _ -> match ax.data with
           | AC.SubObjectPropertyOf ([r], s) ->
               add_subrole s r true
           | AC.EquivalentObjectProperties op_lst ->

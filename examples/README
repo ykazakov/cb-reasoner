@@ -7,9 +7,9 @@ CONTENTS:
 
 Example:
 
-  ../bin/cb pizza.owl -o pizza-tax.owl
+  ../bin/cb -c pizza.owl -o pizza-tax.owl
   OR
-  ../bin/cb < pizza.owl > pizza-tax.ow
+  ../bin/cb -c < pizza.owl > pizza-tax.ow
 
 will load the ontology from file "pizza.owl", classifies it,
 and outputs the sorted taxonomy into the file "pizza-tax.owl"

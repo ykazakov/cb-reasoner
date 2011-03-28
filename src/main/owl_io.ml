@@ -106,24 +106,8 @@ let fprint_Individual f dt = F.pp_print_string f (str_of_Individual dt)
 
 (**======================= Literals =====================**)
 
-let fprint_Literal f lt =
-	let module C = Literal_Constructor in
-	begin match lt.data with
-		| C.TypedLiteral (lf, dt) ->
-				F.fprintf f "@[<hv 2>\"%s\"^^" lf;
-				fprint_Datatype f dt;
-				F.fprintf f "@]";
-		| C.StringLiteralNoLanguage st ->
-				F.fprintf f "@[<hv 2>\"%s\"@]" st;
-		| C.StringLiteralWithLanguage (st, lg) ->
-				F.fprintf f "@[<hv 2>\"%s\"@%s@]" st lg;
-	end
-;;
-
-let str_of_Literal lt =
-	fprint_Literal F.str_formatter lt;
-	F.flush_str_formatter ()
-;;
+let str_of_Literal lt = Literal.str_of lt
+let fprint_Literal f lt = F.pp_print_string f (str_of_Literal lt)
 
 (**============ Object Property Expressions =============**)
 
@@ -542,41 +526,102 @@ let str_of_Assertion ax =
 
 (**======================== Ontology =======================**)
 
-let fprint_ontology ?(message = "Printing ontology...") pt f ont =
-	pt.PT.start message (
-			O.total_ObjectPropertyAxiom ont +
-			O.total_ClassAxiom ont +
-			O.total_Assertion ont);
+let fprint_ontology ?(message = "Printing ontology...") pt_lst f ont =
+	PT.start pt_lst message (
+			O.count_ObjectPropertyAxiom ont +
+			O.count_ClassAxiom ont +
+			O.count_Assertion ont);
 	F.fprintf f "@[<v 2>Ontology(";
 	O.iter_record_ObjectPropertyAxiom
-		(fun ax ->
+		(fun ax _ ->
 					F.fprintf f "@;";
 					fprint_ObjectPropertyAxiom f ax;
-					pt.PT.step ();
+					PT.step pt_lst;
 		) ont;
 	O.iter_record_ClassAxiom
-		(fun ax ->
+		(fun ax _ ->
 					F.fprintf f "@;";
 					fprint_ClassAxiom f ax;
-					pt.PT.step ();
+					PT.step pt_lst;
 		) ont;
 	O.iter_record_Assertion
-		(fun ax ->
+		(fun ax _ ->
 					F.fprintf f "@;";
 					fprint_Assertion f ax;
-					pt.PT.step ();
+					PT.step pt_lst;
 		) ont;
 	F.fprintf f "@;<0 -2>)@]%!";
-	pt.PT.finish ();
+	PT.finish pt_lst;
 ;;
 
-let print_ontology_ch ?(message = "Printing ontology...") pt ont out =
+let print_ontology_ch ?(message = "Printing ontology...") pt_lst ont out =
 	let f = F.formatter_of_out_channel out in
-	fprint_ontology ~message: message pt f ont;
+	fprint_ontology ~message: message pt_lst f ont;
 ;;
 
-let save_ontology ?(message = "Saving ontology...") pt ont file_name =
+let save_ontology ?(message = "Saving ontology...") pt_lst ont file_name =
 	let file = open_out file_name in
-	print_ontology_ch ~message: message pt ont file;
+	print_ontology_ch ~message: message pt_lst ont file;
 	close_out file;
+;;
+
+(**===================== Class Taxonomy ====================**)
+
+let fprint_class_taxonomy ?(message = "Printing taxonomy...") pt_lst f tax =
+	let module T = Class_taxonomy in
+	let module C = Class_Constructor in
+	let module CE = ClassExpression_Constructor in
+	let print_declaration ce = match ce.data with
+		| CE.Class c ->
+				if c != C.Thing && c != C.Nothing then begin
+					F.fprintf f "@;@[<hv 2>Declaration(@,@[<hv 2>Class(@,";
+					fprint_Class f c;
+					F.fprintf f "@;<0 -2>)@]@;<0 -2>)@]";
+				end
+		| _ -> ()
+	in
+	let print_equivalent classes =
+		Array.iter print_declaration classes;
+		if Array.length classes > 1 then begin
+			F.fprintf f "@;@[<hv 2>EquivalentClasses(@,";
+			Array.iteri (fun i be ->
+							if i > 0 then F.fprintf f "@ ";
+							fprint_ClassExpression f be;
+				) classes;
+			F.fprintf f "@;<0 -2>)@]";
+		end
+	in
+	let nodes = T.get_nodes tax in
+	PT.start pt_lst message (Array.length nodes);
+	let tm = Unix.gmtime (Unix.gettimeofday ()) in
+	F.fprintf f "@[<v 2>Ontology(<http://code.google.com/p/cb-reasoner/%n/%n/%n/taxonomy>"
+		(1900 + tm.Unix.tm_year) (tm.Unix.tm_mon + 1) tm.Unix.tm_mday;
+	let top_node = nodes.(0) in
+	let bot_node = nodes.(pred (Array.length nodes)) in
+	Array.iter (fun node ->
+					let classes = T.Node.get_classes node in
+					print_equivalent classes;
+					let a = classes.(0) in
+					(* printing directly implied classes unless it is [bot_node] *)
+					if (node != bot_node) then
+						Array.iter (function
+								(* don't print the parent top node *)
+								| node_sc when node_sc == top_node -> ()
+								| node_sc ->
+										let b = (T.Node.get_classes node_sc).(0) in
+										F.fprintf f "@;@[<hv 2>SubClassOf(@,";
+										fprint_ClassExpression f a;
+										F.fprintf f "@ ";
+										fprint_ClassExpression f b;
+										F.fprintf f "@;<0 -2>)@]";
+							) (T.Node.get_parent_nodes node);
+					PT.step pt_lst;
+		) nodes;
+	F.fprintf f "@;<0 -2>)@]%!";
+	PT.finish pt_lst
+;;
+
+let print_class_taxonomy_ch ?(message = "Printing taxonomy...") pt_lst tax out =
+	let f = F.formatter_of_out_channel out in
+	fprint_class_taxonomy ~message: message pt_lst f tax;
 ;;

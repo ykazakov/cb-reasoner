@@ -49,8 +49,8 @@ module CommonConsed = struct
 		module HMap : Chashtbllp.S with type key = t
 	end
 	
-	module Make(H: HashedType): (S with type key = H.t) = struct		
-		include Consed.Make (H)		
+	module Make(H: HashedType): (S with type key = H.t) = struct 
+		include Consed.Make (H) 
 		module Hashtbl = Chashmap.Make (H)
 		module Set = Cset.Make (H)
 		module Map = Cmap.Make (H)
@@ -157,9 +157,11 @@ module rec IRI_Constructor : sig
   save
  	| IRI of O_string
   make_ohtype
+	make_cases
 	val str_of : t -> string
 end = struct 
   make_type
+	make_cases
   make_compare
   make_equal
   make_hash list_hash 
@@ -182,9 +184,11 @@ and NodeID_Constructor : sig
   save
    | NodeID of O_string
   make_ohtype
+	make_cases
 	val str_of : t -> string
 	end = struct 
   make_type
+	make_cases
   make_compare
   make_equal
   make_hash list_hash
@@ -241,12 +245,14 @@ and Datatype_Constructor : sig
     | Xsd_dateTimeStamp
     | Rdf_XMLLiteral
   make_ohtype
+	make_cases	
 	val str_of : t -> string
 	end = struct
 			make_type
+			make_cases
 			make_compare
 			make_equal
-		  make_hash list_hash
+		  make_hash list_hash			
 		let str_of = function
 			| IRI iri -> IRI.str_of iri
 			| Rdfs_Literal -> "rdfs:Literal"
@@ -309,9 +315,11 @@ and ConstrainingFacet_Constructor : sig
 			| Xsd_pattern
 			| Rdf_langRange
 		make_ohtype
+		make_cases
 		val str_of : t -> string
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash 
@@ -345,9 +353,11 @@ and ObjectProperty_Constructor : sig
 			| TopObjectProperty
 			| BottomObjectProperty
 		make_ohtype
+		make_cases
 		val str_of : t -> string
 	end = struct 
     make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -374,9 +384,11 @@ and DataProperty_Constructor : sig
 			| TopDataProperty
 			| BottomDataProperty
 		make_ohtype
+		make_cases
 		val str_of : t -> string
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -410,9 +422,11 @@ and AnnotationProperty_Constructor : sig
 			| Owl_backwardCompatibleWith
 			| Owl_incompatibleWith
 		make_ohtype
+		make_cases
 		val str_of : t -> string
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash 
@@ -446,9 +460,11 @@ and Class_Constructor : sig
 			| Thing
 			| Nothing
 		make_ohtype
+		make_cases
 		val str_of : t -> string
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -474,9 +490,11 @@ and Individual_Constructor : sig
 			| NamedIndividual of IRI
 			| AnonymousIndividual of NodeID
 		make_ohtype
+		make_cases
 		val str_of : t -> string
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -502,17 +520,56 @@ and Literal_Constructor : sig
 			| StringLiteralNoLanguage of O_string
 			| StringLiteralWithLanguage of O_string * O_string
 		make_ohtype
+		make_cases
+		val str_of : t -> string
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
-		make_hash list_hash 
+		make_hash list_hash
+		let str_of = function
+			| TypedLiteral (lf, dt) ->
+				Printf.sprintf "\"%s\"^^%s" lf (Datatype.str_of dt)
+			| StringLiteralNoLanguage st ->
+			  Printf.sprintf "\"%s\"" st
+			| StringLiteralWithLanguage (st, lg) ->
+					Printf.sprintf "\"%s\"@%s" st lg 
     let init_size () = 13
 end
 
-and Literal : CommonConsed.S with type key = Literal_Constructor.t
-= CommonConsed.Make (Literal_Constructor)
+and Literal : sig
+	include CommonExtended.S with type t = Literal_Constructor.t
+	val str_of : t -> string
+end = struct
+	include CommonExtended.Make(Literal_Constructor)
+	let str_of = Literal_Constructor.str_of
+end
 
+(**=================== Declarations =====================**)
+
+and Declaration_Constructor : sig
+	  save
+	    | Class of Class		
+      | Datatype of Datatype
+      | ObjectProperty of ObjectProperty
+      | DataProperty of DataProperty
+      | AnnotationProperty of AnnotationProperty
+      | NamedIndividual of Individual
+	  make_ohtype
+    make_cases
+	end = struct 
+    make_type
+    make_cases
+    make_compare
+    make_equal
+    make_hash list_hash
+end
+	
+and Declaration : CommonConsed.S with type key 
+= Declaration_Constructor.t
+= CommonConsed.Make (Declaration_Constructor)	
+	
 (**============ Object Property Expressions =============**)
 
 and ObjectPropertyExpression_Constructor : sig
@@ -520,8 +577,10 @@ and ObjectPropertyExpression_Constructor : sig
 			| ObjectProperty of ObjectProperty
 			| ObjectInverseOf of ObjectProperty
 		make_ohtype
+		make_cases
 	end = struct
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash 
@@ -538,8 +597,10 @@ and DataPropertyExpression_Constructor : sig
 		save
 			| DataProperty of DataProperty
 		make_ohtype
+		make_cases
 	end = struct 
 		make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -559,9 +620,11 @@ and DataRange_Constructor : sig
 			| DataComplementOf of DataRange
 			| DataOneOf of Literal O_list
 			| DatatypeRestriction of Datatype * ((ConstrainingFacet * Literal) O_list)
-		make_ohtype 
+		make_ohtype
+		make_cases 
 	end = struct 
 	  make_type
+		make_cases
 		make_equal
 		make_compare
 		make_hash list_hash
@@ -594,9 +657,11 @@ and ClassExpression_Constructor : sig
 			| DataMinCardinality of O_int * DataPropertyExpression * DataRange O_option
 			| DataMaxCardinality of O_int * DataPropertyExpression * DataRange O_option
 			| DataExactCardinality of O_int * DataPropertyExpression * DataRange O_option
-    make_ohtype 
+    make_ohtype
+		make_cases 
 	end = struct 
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -615,8 +680,10 @@ and ClassAxiom_Constructor : sig
 			| DisjointClasses of ClassExpression O_list
 			| DisjointUnion of Class * ClassExpression O_list
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -643,11 +710,13 @@ and ObjectPropertyAxiom_Constructor : sig
 			| AsymmetricObjectProperty of ObjectPropertyExpression
 			| TransitiveObjectProperty of ObjectPropertyExpression
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
-		make_hash list_hash   
+		make_hash list_hash 
 end
 
 and ObjectPropertyAxiom : CommonConsed.S with type key = ObjectPropertyAxiom_Constructor.t
@@ -664,8 +733,10 @@ and DataPropertyAxiom_Constructor : sig
 			| DataPropertyRange of DataPropertyExpression * DataRange
 			| FunctionalDataProperty of DataPropertyExpression
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -680,8 +751,10 @@ and DatatypeDefinition_Constructor : sig
     save
 			| DatatypeDefinition of Datatype * DataRange
     make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -696,8 +769,10 @@ and Key_Constructor : sig
 		save
 			| HasKey of ClassExpression * ObjectPropertyExpression O_list * DataPropertyExpression O_list
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -718,8 +793,10 @@ and Assertion_Constructor : sig
 			| DataPropertyAssertion of DataPropertyExpression * Individual * Literal
 			| NegativeDataPropertyAssertion of DataPropertyExpression * Individual * Literal
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -735,8 +812,10 @@ and AnnotationSubject_Constructor : sig
 			| IRI of IRI
 			| AnonymousIndividual of NodeID
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -753,8 +832,10 @@ and AnnotationValue_Constructor : sig
 			| IRI of IRI
 			| Literal of Literal
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -769,8 +850,10 @@ and Annotation_Constructor : sig
 		save
 			| Annotation of Annotation O_list * AnnotationProperty * AnnotationValue
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash
@@ -788,8 +871,10 @@ and AnnotationAxiom_Constructor : sig
 			| AnnotationPropertyDomain of Annotation O_list * AnnotationProperty * IRI
 			| AnnotationPropertyRange of Annotation O_list * AnnotationProperty * IRI
 		make_ohtype
+		make_cases
 	end = struct
 	  make_type
+		make_cases
 		make_compare
 		make_equal
 		make_hash list_hash

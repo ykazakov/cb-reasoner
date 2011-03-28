@@ -729,7 +729,7 @@ let pop_stack_is t pt_lst =
 	| is :: rest ->
 			t.stack_is <- rest;
 			t.current_is <- Some is;
-	| [] -> t.current_is <- None
+	| [] ->	t.current_is <- None
 ;;
 
 (* finding the next edge to be processed for roles *)
@@ -994,9 +994,9 @@ let rec process_t t pt_lst index =
 (**======================= the main function =================================*)
 
 let compute ?(message = "Saturating ontology...") pt_lst ont =
-	let max = O.total_ClassIRI ont in	
+	let max = O.count_Class ont in	
 	List.iter (fun pt -> pt.PT.start message max) pt_lst;
-	let t = t_create (O.total_ClassIRI ont) in
+	let t = t_create (O.count_Class ont) in
 	let index = I.init ont in
 	(* Gc.compact (); *)
 	

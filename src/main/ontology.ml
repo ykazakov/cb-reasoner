@@ -6,70 +6,169 @@ module PC = Polarity.Counter
 
 (**======================= ontology ========================**)
 
-module OrderedClass =
-struct
-	type t = Class.t
-	let compare c1 c2 = String.compare (Class.str_of c1) (Class.str_of c2)
+(* functor for lexicographic comparison *)
+
+module type OrderedMapSet = sig
+	type t
+	module Map : Map.S with type key = t
+	module Set : Set.S with type elt = t
 end
 
-module ClassMap = Map.Make (OrderedClass)
-module ClassSet = Set.Make (OrderedClass)
+module MakeOrdered (M: sig type t val str_of : t -> string end)
+: OrderedMapSet with type t = M.t = struct
+	module T = struct
+		type t = M.t
+		let compare t1 t2 = String.compare (M.str_of t1) (M.str_of t2)
+	end
+	type t = T.t
+	module Map = Map.Make (T)
+	module Set = Set.Make (T)
+end
+
+module OrderedClass = MakeOrdered (Class)
+module OrderedDatatype = MakeOrdered (Datatype)
+module OrderedConstrainingFacet = MakeOrdered (ConstrainingFacet)
+module OrderedObjectProperty = MakeOrdered (ObjectProperty)
+module OrderedDataProperty = MakeOrdered (DataProperty)
+module OrderedIndividual = MakeOrdered (Individual)
+module OrderedLiteral = MakeOrdered (Literal)
+
+(* currently supported constructors *)
+let supported_Class_Constructor =
+	let module C = Class_Constructor.Cases in
+	let record = C.record_create None in
+	C.record_set record C.Thing (Some Polarity.Both);
+	C.record_set record C.Nothing (Some Polarity.Both);
+	record
+let supported_Datatype_Constructor =
+	let module C = Datatype_Constructor.Cases in
+	let record = C.record_create None in
+	record
+let supported_ConstrainingFacet_Constructor =
+	let module C = ConstrainingFacet_Constructor.Cases in
+	let record = C.record_create None in
+	record
+let supported_ObjectProperty_Constructor =
+	let module C = ObjectProperty_Constructor.Cases in
+	let record = C.record_create None in
+	record
+let supported_DataProperty_Constructor =
+	let module C = DataProperty_Constructor.Cases in
+	let record = C.record_create None in
+	record
+let supported_Individual_Constructor =
+	let module C = Individual_Constructor.Cases in
+	let record = C.record_create None in
+	record
+let supported_ClassExpression_Constructor =
+	let module C = ClassExpression_Constructor.Cases in
+	let record = C.record_create None in
+	C.record_set record C.ObjectIntersectionOf (Some Polarity.Both);
+	C.record_set record C.ObjectUnionOf (Some Polarity.Negative);
+	C.record_set record C.ObjectComplementOf (Some Polarity.Positive);
+	C.record_set record C.ObjectSomeValuesFrom (Some Polarity.Both);
+	C.record_set record C.ObjectAllValuesFrom (Some Polarity.Positive);
+	record	
+let supported_ObjectPropertyExpression_Constructor =
+	let module C = ObjectPropertyExpression_Constructor.Cases in
+	let record = C.record_create None in
+	C.record_set record C.ObjectInverseOf (Some Polarity.Both);
+	record
+(*|let supported_Declaration_Constructor =          *)
+(*|  let module C = Declaration_Constructor.Cases in*)
+(*|  let record = C.record_create false in          *)
+(*|  C.record_set record C.Class true;              *)
+(*|	C.record_set record C.ObjectProperty true;     *)
+(*|  record	                                       *)
+let supported_ClassAxiom_Constructor =
+	let module C = ClassAxiom_Constructor.Cases in
+	let record = C.record_create false in
+	C.record_set record C.SubClassOf true;
+	C.record_set record C.EquivalentClasses true;
+	record
+let supported_ObjectPropertyAxiom_Constructor =
+	let module C = ObjectPropertyAxiom_Constructor.Cases in
+	let record = C.record_create false in
+	C.record_set record C.SubObjectPropertyOf true;
+	C.record_set record C.EquivalentObjectProperties true;
+	C.record_set record C.InverseObjectProperties true;
+	C.record_set record C.FunctionalObjectProperty true;
+	C.record_set record C.InverseFunctionalObjectProperty true;
+	C.record_set record C.TransitiveObjectProperty true;
+	record
 
 type t = {
-	
 	(* ========== signature ========== *)
-	mutable record_ObjectProperty : int ObjectProperty.Map.t;
-	mutable count_ObjectPropertyIRI : int;
-	mutable count_TopObjectProperty : PC.t;
-	mutable count_BottomObjectProperty: PC.t;
+	mutable record_Class : PC.t OrderedClass.Map.t;
+	mutable count_Class : int;
+	mutable total_cases_Class : PC.t Class_Constructor.Cases.record;
 	
-	mutable record_Class : int ClassMap.t;
-	mutable count_ClassIRI : int;
-	mutable count_Thing : PC.t;
-	mutable count_Nothing: PC.t;
+	mutable record_Datatype : PC.t OrderedDatatype.Map.t;
+	mutable count_Datatype : int;
+	mutable total_cases_Datatype : PC.t Datatype_Constructor.Cases.record;
 	
-	mutable record_Individual : int Individual.Map.t;
-	mutable count_IndividualIRI : int;
+	mutable record_ConstrainingFacet : PC.t OrderedConstrainingFacet.Map.t;
+	mutable count_ConstrainingFacet : int;
+	mutable total_cases_ConstrainingFacet : PC.t ConstrainingFacet_Constructor.Cases.record;
+	
+	mutable record_ObjectProperty : PC.t OrderedObjectProperty.Map.t;
+	mutable count_ObjectProperty : int;
+	mutable total_cases_ObjectProperty : PC.t ObjectProperty_Constructor.Cases.record;
+	
+	mutable record_DataProperty : PC.t OrderedDataProperty.Map.t;
+	mutable count_DataProperty : int;
+	mutable total_cases_DataProperty : PC.t DataProperty_Constructor.Cases.record;
+	
+	mutable record_Individual : PC.t OrderedIndividual.Map.t;
+	mutable count_Individual : int;
+	mutable total_cases_Individual : PC.t Individual_Constructor.Cases.record;
+	
+	mutable record_Literal : PC.t Literal.Map.t;
+	mutable count_Literal : int;
+	mutable total_cases_Literal : PC.t Literal_Constructor.Cases.record;
 	
 	(* ========== structure ========== *)
-	mutable record_ComplexObjectPropertyExpression : PC.t ObjectPropertyExpression.Map.t;
-	mutable count_ObjectInverseOf : PC.t;
 	
-	mutable record_ComplexClassExpression : PC.t ClassExpression.Map.t;
-	mutable count_ObjectIntersectionOf : PC.t;
-	mutable count_ObjectUnionOf : PC.t;
-	mutable count_ObjectComplementOf : PC.t;
-	mutable count_ObjectOneOf : PC.t;
-	mutable count_ObjectSomeValuesFrom : PC.t;
-	mutable count_ObjectAllValuesFrom : PC.t;
-	mutable count_ObjectHasValue : PC.t;
-	mutable count_ObjectHasSelf : PC.t;
-	mutable count_ObjectMinCardinality : PC.t;
-	mutable count_ObjectMaxCardinality : PC.t;
-	mutable count_ObjectExactCardinality : PC.t;
-	mutable count_DataSomeValuesFrom : PC.t;
-	mutable count_DataAllValuesFrom : PC.t;
-	mutable count_DataHasValue : PC.t;
-	mutable count_DataMinCardinality : PC.t;
-	mutable count_DataMaxCardinality : PC.t;
-	mutable count_DataExactCardinality : PC.t;
+	mutable record_ObjectPropertyExpression : PC.t ObjectPropertyExpression.Map.t;
+	mutable count_ObjectPropertyExpression : int;
+	mutable total_cases_ObjectPropertyExpression : PC.t ObjectPropertyExpression_Constructor.Cases.record;
+	
+	mutable record_DataRange : PC.t DataRange.Map.t;
+	mutable count_DataRange : int;
+	mutable total_cases_DataRange : PC.t DataRange_Constructor.Cases.record;
+	
+	mutable record_ClassExpression : PC.t ClassExpression.Map.t;
+	mutable count_ClassExpression : int;
+	mutable total_cases_ClassExpression : PC.t ClassExpression_Constructor.Cases.record;
 	
 	(* ========== axioms ========== *)
-	mutable record_ObjectPropertyAxiom : ObjectPropertyAxiom.Set.t;
-	mutable count_SubPropertyOf : int;
-	mutable count_EquivalentProperties : int;
-	mutable count_InverseProperties : int;
-	mutable count_FunctionalProperty : int;
-	mutable count_InverseFunctionalProperty : int;
-	mutable count_TransitiveProperty : int;
+	mutable record_Declaration : int Declaration.Map.t;
+  mutable count_Declaration : int;
+  mutable total_cases_Declaration : int Declaration_Constructor.Cases.record;
 	
-	mutable record_ClassAxiom : ClassAxiom.Set.t;
-	mutable count_SubClassOf : int;
-	mutable count_EquivalentClasses : int;
+	mutable record_ClassAxiom : int ClassAxiom.Map.t;
+	mutable count_ClassAxiom : int;
+	mutable total_cases_ClassAxiom : int ClassAxiom_Constructor.Cases.record;
 	
-	mutable record_Assertion : Assertion.Set.t;
-	mutable count_ClassAssertion : int;
-	mutable count_PropertyAssertion : int;
+	mutable record_ObjectPropertyAxiom : int ObjectPropertyAxiom.Map.t;
+	mutable count_ObjectPropertyAxiom : int;
+	mutable total_cases_ObjectPropertyAxiom : int ObjectPropertyAxiom_Constructor.Cases.record;
+	
+	mutable record_DataPropertyAxiom : int DataPropertyAxiom.Map.t;
+	mutable count_DataPropertyAxiom : int;
+	mutable total_cases_DataPropertyAxiom : int DataPropertyAxiom_Constructor.Cases.record;
+	
+	mutable record_DatatypeDefinition : int DatatypeDefinition.Map.t;
+	mutable count_DatatypeDefinition : int;
+	mutable total_cases_DatatypeDefinition : int DatatypeDefinition_Constructor.Cases.record;
+	
+	mutable record_Key : int Key.Map.t;
+	mutable count_Key : int;
+	mutable total_cases_Key : int Key_Constructor.Cases.record;
+	
+	mutable record_Assertion : int Assertion.Map.t;
+	mutable count_Assertion : int;
+	mutable total_cases_Assertion : int Assertion_Constructor.Cases.record;
 }
 
 (**=================== initialization ======================**)
@@ -77,461 +176,669 @@ type t = {
 let create () =	{
 
 (* ========== signature ========== *)
-	record_ObjectProperty = ObjectProperty.Map.empty;
-	count_ObjectPropertyIRI = 0;
-	count_TopObjectProperty = PC.zero;
-	count_BottomObjectProperty = PC.zero;
+	record_Class = OrderedClass.Map.empty;
+	count_Class = 0;
+	total_cases_Class = Class_Constructor.Cases.record_create PC.zero;
 	
-	record_Class = ClassMap.empty;
-	count_ClassIRI = 0;
-	count_Thing = PC.zero;
-	count_Nothing = PC.zero;
+	record_Datatype = OrderedDatatype.Map.empty;
+	count_Datatype = 0;
+	total_cases_Datatype = Datatype_Constructor.Cases.record_create PC.zero;
 	
-	record_Individual = Individual.Map.empty;
-	count_IndividualIRI = 0;
+	record_ConstrainingFacet = OrderedConstrainingFacet.Map.empty;
+	count_ConstrainingFacet = 0;
+	total_cases_ConstrainingFacet = ConstrainingFacet_Constructor.Cases.record_create PC.zero;
+	
+	record_ObjectProperty = OrderedObjectProperty.Map.empty;
+	count_ObjectProperty = 0;
+	total_cases_ObjectProperty = ObjectProperty_Constructor.Cases.record_create PC.zero;
+	
+	record_DataProperty = OrderedDataProperty.Map.empty;
+	count_DataProperty = 0;
+	total_cases_DataProperty = DataProperty_Constructor.Cases.record_create PC.zero;
+	
+	record_Individual = OrderedIndividual.Map.empty;
+	count_Individual = 0;
+	total_cases_Individual = Individual_Constructor.Cases.record_create PC.zero;
+	
+	record_Literal = Literal.Map.empty;
+	count_Literal = 0;
+	total_cases_Literal = Literal_Constructor.Cases.record_create PC.zero;
 	
 	(* ========== structure ========== *)
-	record_ComplexObjectPropertyExpression = ObjectPropertyExpression.Map.empty;
-	count_ObjectInverseOf = PC.zero;
+	record_ObjectPropertyExpression = ObjectPropertyExpression.Map.empty;
+	count_ObjectPropertyExpression = 0;
+	total_cases_ObjectPropertyExpression = ObjectPropertyExpression_Constructor.Cases.record_create PC.zero;
 	
-	record_ComplexClassExpression = ClassExpression.Map.empty;
-	count_ObjectIntersectionOf = PC.zero;
-	count_ObjectUnionOf = PC.zero;
-	count_ObjectComplementOf = PC.zero;
-	count_ObjectOneOf = PC.zero;
-	count_ObjectSomeValuesFrom = PC.zero;
-	count_ObjectAllValuesFrom = PC.zero;
-	count_ObjectHasValue = PC.zero;
-	count_ObjectHasSelf = PC.zero;
-	count_ObjectMinCardinality = PC.zero;
-	count_ObjectMaxCardinality = PC.zero;
-	count_ObjectExactCardinality = PC.zero;
-	count_DataSomeValuesFrom = PC.zero;
-	count_DataAllValuesFrom = PC.zero;
-	count_DataHasValue = PC.zero;
-	count_DataMinCardinality = PC.zero;
-	count_DataMaxCardinality = PC.zero;
-	count_DataExactCardinality = PC.zero;
+	record_DataRange = DataRange.Map.empty;
+	count_DataRange = 0;
+	total_cases_DataRange = DataRange_Constructor.Cases.record_create PC.zero;
+	
+	record_ClassExpression = ClassExpression.Map.empty;
+	count_ClassExpression = 0;
+	total_cases_ClassExpression = ClassExpression_Constructor.Cases.record_create PC.zero;
 	
 	(* ========== axioms ========== *)
-	record_ObjectPropertyAxiom = ObjectPropertyAxiom.Set.empty;
-	count_SubPropertyOf = 0;
-	count_EquivalentProperties = 0;
-	count_InverseProperties = 0;
-	count_FunctionalProperty = 0;
-	count_InverseFunctionalProperty = 0;
-	count_TransitiveProperty = 0;
+	record_Declaration = Declaration.Map.empty;
+  count_Declaration = 0;
+  total_cases_Declaration = Declaration_Constructor.Cases.record_create 0;
 	
-	record_ClassAxiom = ClassAxiom.Set.empty;
-	count_SubClassOf = 0;
-	count_EquivalentClasses = 0;
+	record_ClassAxiom = ClassAxiom.Map.empty;
+	count_ClassAxiom = 0;
+	total_cases_ClassAxiom = ClassAxiom_Constructor.Cases.record_create 0;
 	
-	record_Assertion = Assertion.Set.empty;
-	count_ClassAssertion = 0;
-	count_PropertyAssertion = 0;
+	record_ObjectPropertyAxiom = ObjectPropertyAxiom.Map.empty;
+	count_ObjectPropertyAxiom = 0;
+	total_cases_ObjectPropertyAxiom = ObjectPropertyAxiom_Constructor.Cases.record_create 0;
+	
+	record_DataPropertyAxiom = DataPropertyAxiom.Map.empty;
+	count_DataPropertyAxiom = 0;
+	total_cases_DataPropertyAxiom = DataPropertyAxiom_Constructor.Cases.record_create 0;
+	
+	record_DatatypeDefinition = DatatypeDefinition.Map.empty;
+	count_DatatypeDefinition = 0;
+	total_cases_DatatypeDefinition = DatatypeDefinition_Constructor.Cases.record_create 0;
+	
+	record_Key = Key.Map.empty;
+	count_Key = 0;
+	total_cases_Key = Key_Constructor.Cases.record_create 0;
+	
+	record_Assertion = Assertion.Map.empty;
+	count_Assertion = 0;
+	total_cases_Assertion = Assertion_Constructor.Cases.record_create 0;
 }
 
 (**====================== iterators ========================**)
 
-let iter_record_ObjectProperty f ont =
-	ObjectProperty.Map.iter f ont.record_ObjectProperty
 let iter_record_Class f ont =
-	ClassMap.iter f ont.record_Class
+	OrderedClass.Map.iter f ont.record_Class
+let iter_record_Datatype f ont =
+	OrderedDatatype.Map.iter f ont.record_Datatype
+let iter_record_ConstrainingFacet f ont =
+	OrderedConstrainingFacet.Map.iter f ont.record_ConstrainingFacet
+let iter_record_ObjectProperty f ont =
+	OrderedObjectProperty.Map.iter f ont.record_ObjectProperty
+let iter_record_DataProperty f ont =
+	OrderedDataProperty.Map.iter f ont.record_DataProperty
 let iter_record_Individual f ont =
-	Individual.Map.iter f ont.record_Individual
+	OrderedIndividual.Map.iter f ont.record_Individual
 
-let iter_record_ComplexObjectPropertyExpression f ont =
-	ObjectPropertyExpression.Map.iter f ont.record_ComplexObjectPropertyExpression
-let iter_record_ComplexClassExpression f ont =
-	ClassExpression.Map.iter f ont.record_ComplexClassExpression
+let iter_record_ObjectPropertyExpression f ont =
+	ObjectPropertyExpression.Map.iter f ont.record_ObjectPropertyExpression
+let iter_record_ClassExpression f ont =
+	ClassExpression.Map.iter f ont.record_ClassExpression
 
+let iter_record_Declaration f ont =
+    Declaration.Map.iter f ont.record_Declaration
 let iter_record_ObjectPropertyAxiom f ont =
-	ObjectPropertyAxiom.Set.iter f ont.record_ObjectPropertyAxiom
+	ObjectPropertyAxiom.Map.iter f ont.record_ObjectPropertyAxiom
 let iter_record_ClassAxiom f ont =
-	ClassAxiom.Set.iter f ont.record_ClassAxiom
+	ClassAxiom.Map.iter f ont.record_ClassAxiom
 let iter_record_Assertion f ont =
-	Assertion.Set.iter f ont.record_Assertion
+	Assertion.Map.iter f ont.record_Assertion
 
 (**============== statistical information ================**)
 
+let count_Class ont = ont.count_Class
+let count_Datatype ont = ont.count_Datatype
+let count_ConstrainingFacet ont = ont.count_ConstrainingFacet
+let count_ObjectProperty ont = ont.count_ObjectProperty
+let count_DataProperty ont = ont.count_DataProperty
+let count_Individual ont = ont.count_Individual
+
+let count_ObjectPropertyExpression ont = ont.count_ObjectPropertyExpression
+let count_ClassExpression ont = ont.count_ClassExpression
+
+let count_ObjectPropertyAxiom ont = ont.count_ObjectPropertyAxiom
+let count_ClassAxiom ont = ont.count_ClassAxiom
+let count_Assertion ont = ont.count_Assertion
+
 let has_positive_Nothing ont =
-	PC.get_pos ont.count_Nothing > 0
-let has_positive_ComplementOf ont =
-	PC.get_pos ont.count_ObjectComplementOf > 0
+	let module C = Class_Constructor.Cases in
+	PC.get_pos (C.record_get ont.total_cases_Class C.Nothing) > 0
 let has_negative_Thing ont =
-	PC.get_neg ont.count_Thing > 0
-
-let total_ObjectPropertyIRI ont = ont.count_ObjectPropertyIRI
-let total_ClassIRI ont = ont.count_ClassIRI
-let total_IndividualIRI ont = ont.count_IndividualIRI
-
-let count_TopObjectProperty ont = ont.count_TopObjectProperty
-let count_BottomObjectProperty ont = ont.count_BottomObjectProperty
-let count_Thing ont = ont.count_Thing
-let count_Nothing ont = ont.count_Nothing
-
-let count_ObjectInverseOf ont = ont.count_ObjectInverseOf
-let total_ObjectInverseOf ont = PC.get_total ont.count_ObjectInverseOf
-
-let count_ObjectIntersectionOf ont = ont.count_ObjectIntersectionOf
-let count_ObjectUnionOf ont = ont.count_ObjectUnionOf
-let count_ObjectComplementOf ont = ont.count_ObjectComplementOf
-let count_ObjectOneOf ont = ont.count_ObjectOneOf
-let count_ObjectSomeValuesFrom ont = ont.count_ObjectSomeValuesFrom
-let count_ObjectAllValuesFrom ont = ont.count_ObjectAllValuesFrom
-let count_ObjectHasValue ont = ont.count_ObjectHasValue
-let count_ObjectHasSelf ont = ont.count_ObjectHasSelf
-let count_ObjectMinCardinality ont = ont.count_ObjectMinCardinality
-let count_ObjectMaxCardinality ont = ont.count_ObjectMaxCardinality
-let count_ObjectExactCardinality ont = ont.count_ObjectExactCardinality
-let count_DataSomeValuesFrom ont = ont.count_DataSomeValuesFrom
-let count_DataAllValuesFrom ont = ont.count_DataAllValuesFrom
-let count_DataHasValue ont = ont.count_DataHasValue
-let count_DataMinCardinality ont = ont.count_DataMinCardinality
-let count_DataMaxCardinality ont = ont.count_DataMaxCardinality
-let count_DataExactCardinality ont = ont.count_DataExactCardinality
-
-let total_ObjectIntersectionOf ont = PC.get_total ont.count_ObjectIntersectionOf
-let total_ObjectUnionOf ont = PC.get_total ont.count_ObjectUnionOf
-let total_ObjectComplementOf ont = PC.get_total ont.count_ObjectComplementOf
-let total_ObjectOneOf ont = PC.get_total ont.count_ObjectOneOf
-let total_ObjectSomeValuesFrom ont = PC.get_total ont.count_ObjectSomeValuesFrom
-let total_ObjectAllValuesFrom ont = PC.get_total ont.count_ObjectAllValuesFrom
-let total_ObjectHasValue ont = PC.get_total ont.count_ObjectHasValue
-let total_ObjectHasSelf ont = PC.get_total ont.count_ObjectHasSelf
-let total_ObjectMinCardinality ont = PC.get_total ont.count_ObjectMinCardinality
-let total_ObjectMaxCardinality ont = PC.get_total ont.count_ObjectMaxCardinality
-let total_ObjectExactCardinality ont = PC.get_total ont.count_ObjectExactCardinality
-let total_DataSomeValuesFrom ont = PC.get_total ont.count_DataSomeValuesFrom
-let total_DataAllValuesFrom ont = PC.get_total ont.count_DataAllValuesFrom
-let total_DataHasValue ont = PC.get_total ont.count_DataHasValue
-let total_DataMinCardinality ont = PC.get_total ont.count_DataMinCardinality
-let total_DataMaxCardinality ont = PC.get_total ont.count_DataMaxCardinality
-let total_DataExactCardinality ont = PC.get_total ont.count_DataExactCardinality
-
-let total_SubPropertyOf ont = ont.count_SubPropertyOf
-let total_EquivalentProperties ont = ont.count_EquivalentProperties
-let total_InverseProperties ont = ont.count_InverseProperties
-let total_FunctionalProperty ont = ont.count_FunctionalProperty
-let total_InverseFunctionalProperty ont = ont.count_InverseFunctionalProperty
-let total_TransitiveProperty ont = ont.count_TransitiveProperty
-let total_ObjectPropertyAxiom ont =
-	ont.count_SubPropertyOf +
-	ont.count_EquivalentProperties +
-	ont.count_InverseProperties +
-	ont.count_FunctionalProperty +
-	ont.count_InverseFunctionalProperty +
-	ont.count_TransitiveProperty
-let total_SubClassOf ont = ont.count_SubClassOf
-let total_EquivalentClasses ont = ont.count_EquivalentClasses
-let total_ClassAxiom ont =
-	ont.count_SubClassOf +
-	ont.count_EquivalentClasses
-let total_ClassAssertion ont = ont.count_ClassAssertion
-let total_PropertyAssertion ont = ont.count_PropertyAssertion
-let total_Assertion ont =
-	ont.count_ClassAssertion +
-	ont.count_PropertyAssertion
+	let module C = Class_Constructor.Cases in
+	PC.get_neg (C.record_get ont.total_cases_Class C.Thing) > 0
+let has_positive_ObjectComplementOf ont =
+	let module C = ClassExpression_Constructor.Cases in
+	PC.get_pos (C.record_get ont.total_cases_ClassExpression C.ObjectComplementOf) > 0
 
 (**==== insertion, computation of polarities and stats =====**)
 
-let add_ObjectProperty_pc ont op pc =
-	let module M = ObjectProperty.Map in
-	let module C = ObjectProperty_Constructor in
-	match op.data with
-	| C.IRI _ -> (* adding only iris in the record *)
-			ont.record_ObjectProperty <- M.add op
-				(let count = try M.find op ont.record_ObjectProperty
-						with Not_found ->
-								ont.count_ObjectPropertyIRI <-
-								succ ont.count_ObjectPropertyIRI;
-								0
-					in count + PC.get_total pc
-				) ont.record_ObjectProperty;
-	| C.TopObjectProperty -> ont.count_TopObjectProperty <-
-			PC.sum ont.count_TopObjectProperty pc
-	| C.BottomObjectProperty -> ont.count_BottomObjectProperty <-
-			PC.sum ont.count_BottomObjectProperty pc
-;;
-
-let add_Class_pc ont c pc =
-	let module M = ClassMap in
+let change_Class_pc ont c pc =
+	let module M = OrderedClass.Map in
 	let module C = Class_Constructor in
-	match c with
-	| C.IRI iri -> (* adding only iris in the record *)
-			ont.record_Class <- M.add c
-				(let count = try M.find c ont.record_Class
-						with Not_found ->
-								ont.count_ClassIRI <-
-								succ ont.count_ClassIRI;
-								0
-					in count + PC.get_total pc
-				) ont.record_Class
-	| C.Thing -> ont.count_Thing <-
-			PC.sum ont.count_Thing pc
-	| C.Nothing -> ont.count_Nothing <-
-			PC.sum ont.count_Nothing pc
+	let count =
+		try M.find c ont.record_Class
+		with Not_found -> PC.zero
+	in
+	let new_count = PC.sum count pc in
+	if PC.is_zero new_count then begin
+		ont.record_Class <- M.remove c ont.record_Class;
+		if not (PC.is_zero count) then
+			ont.count_Class <- pred ont.count_Class;
+	end else begin
+		ont.record_Class <- M.add c new_count ont.record_Class;
+		if (PC.is_zero count) then
+			ont.count_Class <- succ ont.count_Class;
+	end;
+	(* updating cases counter *)
+	let case = C.case_of c in
+	C.Cases.record_set ont.total_cases_Class case (
+			PC.sum pc (C.Cases.record_get ont.total_cases_Class case)
+		)
 ;;
 
-let add_Individual_pc ont i pc =
-	let module M = Individual.Map in
+let change_ObjectProperty_pc ont op pc =
+	let module M = OrderedObjectProperty.Map in
+	let module C = ObjectProperty_Constructor in
+	let count =
+		try M.find op ont.record_ObjectProperty
+		with Not_found ->	PC.zero
+	in
+	let new_count = PC.sum count pc in
+	if PC.is_zero new_count then begin
+		ont.record_ObjectProperty <- M.remove op ont.record_ObjectProperty;
+		if not (PC.is_zero count) then
+			ont.count_ObjectProperty <- pred ont.count_ObjectProperty;
+	end else begin
+		ont.record_ObjectProperty <- M.add op new_count ont.record_ObjectProperty;
+		if (PC.is_zero count) then
+			ont.count_ObjectProperty <- succ ont.count_ObjectProperty;
+	end;
+	(* updating cases counter *)
+	let case = C.case_of op.data in
+	C.Cases.record_set ont.total_cases_ObjectProperty case (
+			PC.sum pc (C.Cases.record_get ont.total_cases_ObjectProperty case)
+		)
+;;
+
+let change_Individual_pc ont i pc =
+	let module M = OrderedIndividual.Map in
 	let module C = Individual_Constructor in
-	(* adding only iris in the record *)
-	ont.record_Individual <- M.add i
-		(let count = try M.find i ont.record_Individual
-				with Not_found ->
-						ont.count_IndividualIRI <-
-						succ ont.count_IndividualIRI;
-						0
-			in succ count
-		) ont.record_Individual
+	let count =
+		try M.find i ont.record_Individual
+		with Not_found ->
+				PC.zero
+	in
+	let new_count =	PC.sum count pc in
+	if PC.is_zero new_count then begin
+		ont.record_Individual <- M.remove i ont.record_Individual;
+		if not (PC.is_zero count) then
+			ont.count_Individual <- succ ont.count_Individual;
+	end else begin
+		ont.record_Individual <- M.add i new_count ont.record_Individual;
+		if (PC.is_zero count) then
+			ont.count_Individual <- succ ont.count_Individual;
+	end;
+	(* updating cases counter *)
+	let case = C.case_of i in
+	C.Cases.record_set ont.total_cases_Individual case (
+			PC.sum pc (C.Cases.record_get ont.total_cases_Individual case)
+		)
 ;;
 
-let rec add_ObjectPropertyExpression_pc ont ope pc =
+let rec change_ObjectPropertyExpression_pc ont ope pc =
 	let module M = ObjectPropertyExpression.Map in
 	let module C = ObjectPropertyExpression_Constructor in
-	begin match ope.data with
-		| C.ObjectProperty _ -> ()
-		| _ -> ont.record_ComplexObjectPropertyExpression <-
-				M.process ope (function
-						| Some pc_old -> Some (PC.sum pc_old pc)
-						| None -> Some pc
-					) ont.record_ComplexObjectPropertyExpression;
-	end;
+	ont.record_ObjectPropertyExpression <- M.process ope (function
+			| Some pc_old ->
+					let pc_new = PC.sum pc_old pc in
+					if PC.is_zero pc_new then None
+					else Some pc_new
+			| None -> Some pc
+		) ont.record_ObjectPropertyExpression;
+	let case = C.case_of ope.data in
+	C.Cases.record_set ont.total_cases_ObjectPropertyExpression case (
+			PC.sum pc (C.Cases.record_get ont.total_cases_ObjectPropertyExpression case)
+		);
 	propagate_ObjectPropertyExpression_pc ont ope pc
 and propagate_ObjectPropertyExpression_pc ont ope pc =
 	let module M = ObjectPropertyExpression.Map in
 	let module C = ObjectPropertyExpression_Constructor in
 	match ope.data with
-	| C.ObjectProperty op -> add_ObjectProperty_pc ont op pc
-	| C.ObjectInverseOf op -> add_ObjectProperty_pc ont op pc;
-			ont.count_ObjectInverseOf <-
-			PC.sum ont.count_ObjectInverseOf pc
+	| C.ObjectProperty op -> change_ObjectProperty_pc ont op pc
+	| C.ObjectInverseOf op -> change_ObjectProperty_pc ont op pc;
 ;;
 
-let rec add_ClassExpression_pc ont ce pc =
+let rec change_ClassExpression_pc ont ce pc =
 	let module M = ClassExpression.Map in
 	let module C = ClassExpression_Constructor in
-	begin match ce.data with
-		| C.Class _ -> ()
-		| _ -> ont.record_ComplexClassExpression <-
-				M.process ce (function
-						| Some pc_old -> Some (PC.sum pc_old pc)
-						| None -> Some pc
-					) ont.record_ComplexClassExpression;
-	end;
+	ont.record_ClassExpression <- M.process ce (function
+			| Some pc_old ->
+					let pc_new = PC.sum pc_old pc in
+					if PC.is_zero pc_new then None
+					else Some pc_new
+			| None -> Some pc
+		) ont.record_ClassExpression;
+	let case = C.case_of ce.data in
+	C.Cases.record_set ont.total_cases_ClassExpression case (
+			PC.sum pc (C.Cases.record_get ont.total_cases_ClassExpression case)
+		);
 	propagate_ClassExpression_pc ont ce pc
 and propagate_ClassExpression_pc ont ce pc =
 	let module C = ClassExpression_Constructor in
 	match ce.data with
-	| C.Class c -> add_Class_pc ont c pc
+	| C.Class c -> change_Class_pc ont c pc
 	| C.ObjectIntersectionOf (ce, cce) ->
-			add_ClassExpression_pc ont ce pc;
-			add_ClassExpression_pc ont cce pc;
-			ont.count_ObjectIntersectionOf <-
-			PC.sum ont.count_ObjectIntersectionOf pc
+			change_ClassExpression_pc ont ce pc;
+			change_ClassExpression_pc ont cce pc;
 	| C.ObjectIntersectionOfrec (ce, cce) ->
-			add_ClassExpression_pc ont ce pc;
-			add_ClassExpression_pc ont cce pc;
+			change_ClassExpression_pc ont ce pc;
+			change_ClassExpression_pc ont cce pc;
 	| C.ObjectUnionOf (ce, cce) ->
-			add_ClassExpression_pc ont ce pc;
-			add_ClassExpression_pc ont cce pc;
-			ont.count_ObjectUnionOf <-
-			PC.sum ont.count_ObjectUnionOf pc
+			change_ClassExpression_pc ont ce pc;
+			change_ClassExpression_pc ont cce pc;
 	| C.ObjectUnionOfrec (ce, cce) ->
-			add_ClassExpression_pc ont ce pc;
-			add_ClassExpression_pc ont cce pc;
+			change_ClassExpression_pc ont ce pc;
+			change_ClassExpression_pc ont cce pc;
 	| C.ObjectComplementOf de ->
-			add_ClassExpression_pc ont de (PC.invert pc);
-			ont.count_ObjectComplementOf <-
-			PC.sum ont.count_ObjectComplementOf pc
+			change_ClassExpression_pc ont de (PC.invert pc);
 	| C.ObjectOneOf i_lst ->
-			List.iter (fun i -> add_Individual_pc ont i pc) i_lst;
-			ont.count_ObjectOneOf <-
-			PC.sum ont.count_ObjectOneOf pc
+			List.iter (fun i -> change_Individual_pc ont i pc) i_lst;
 	| C.ObjectSomeValuesFrom (ope, de) ->
-			add_ObjectPropertyExpression_pc ont ope pc;
-			add_ClassExpression_pc ont de pc;
-			ont.count_ObjectSomeValuesFrom <-
-			PC.sum ont.count_ObjectSomeValuesFrom pc
+			change_ObjectPropertyExpression_pc ont ope pc;
+			change_ClassExpression_pc ont de pc;
 	| C.ObjectAllValuesFrom (ope, de) ->
-			add_ObjectPropertyExpression_pc ont ope (PC.invert pc);
-			add_ClassExpression_pc ont de pc;
-			ont.count_ObjectAllValuesFrom <-
-			PC.sum ont.count_ObjectAllValuesFrom pc
+			change_ObjectPropertyExpression_pc ont ope (PC.invert pc);
+			change_ClassExpression_pc ont de pc;
 	| C.ObjectHasValue (ope, i) ->
-			add_ObjectPropertyExpression_pc ont ope pc;
-			add_Individual_pc ont i pc;
-			ont.count_ObjectHasValue <-
-			PC.sum ont.count_ObjectHasValue pc
+			change_ObjectPropertyExpression_pc ont ope pc;
+			change_Individual_pc ont i pc;
 	| C.ObjectHasSelf ope ->
-			add_ObjectPropertyExpression_pc ont ope pc;
-			ont.count_ObjectHasSelf <-
-			PC.sum ont.count_ObjectHasSelf pc
+			change_ObjectPropertyExpression_pc ont ope pc;
 	| C.ObjectMinCardinality (n, ope, ceo) ->
-			add_ObjectPropertyExpression_pc ont ope pc;
+			change_ObjectPropertyExpression_pc ont ope pc;
 			begin match ceo with
 				| None -> ()
-				| Some ce -> add_ClassExpression_pc ont ce pc;
+				| Some ce -> change_ClassExpression_pc ont ce pc;
 			end;
-			ont.count_ObjectMinCardinality <-
-			PC.sum ont.count_ObjectMinCardinality pc
 	| C.ObjectMaxCardinality (n, ope, ceo) ->
-			add_ObjectPropertyExpression_pc ont ope (PC.invert pc);
+			change_ObjectPropertyExpression_pc ont ope (PC.invert pc);
 			begin match ceo with
 				| None -> ()
-				| Some ce -> add_ClassExpression_pc ont ce (PC.invert pc);
+				| Some ce -> change_ClassExpression_pc ont ce (PC.invert pc);
 			end;
-			ont.count_ObjectMinCardinality <-
-			PC.sum ont.count_ObjectMinCardinality pc
 	| C.ObjectExactCardinality (n, ope, ceo) ->
-			add_ObjectPropertyExpression_pc ont ope (PC.symm pc);
+			change_ObjectPropertyExpression_pc ont ope (PC.symm pc);
 			begin match ceo with
 				| None -> ()
-				| Some ce -> add_ClassExpression_pc ont ce (PC.symm pc);
+				| Some ce -> change_ClassExpression_pc ont ce (PC.symm pc);
 			end;
-			ont.count_ObjectMinCardinality <-
-			PC.sum ont.count_ObjectMinCardinality pc
-	| _ -> ()
+	| _ -> (* TODO: other constructors *) ()
 ;;
 
-let add_ObjectPropertyAxiom ont opa =
-	let module S = ObjectPropertyAxiom.Set in
+let rec change_Declaration_cnt ont ax cnt =
+    let module M = Declaration.Map in
+    let module C = Declaration_Constructor in
+    ont.record_Declaration <- M.process ax (function
+            | Some cnt_old ->
+                    let cnt_new = cnt_old + cnt in
+                    if cnt_new = 0 then None
+                    else Some cnt
+            | None -> Some cnt
+        ) ont.record_Declaration;
+    let case = C.case_of ax.data in
+    C.Cases.record_set ont.total_cases_Declaration case (
+            cnt + (C.Cases.record_get ont.total_cases_Declaration case)
+        );
+    propagate_Declaration_cnt ont ax cnt
+and propagate_Declaration_cnt ont ax cnt =
+	  (* TODO: distinguish declarations from logical elements in the counters *)
+    let module C = Declaration_Constructor in
+    match ax.data with
+    | C.Class c -> change_Class_pc ont c (PC.to_elt ~mult: cnt Polarity.Both)
+    | C.Datatype _ -> ()
+    | C.ObjectProperty op -> change_ObjectProperty_pc ont op (PC.to_elt ~mult: cnt Polarity.Both)
+    | C.DataProperty _ -> ()
+    | C.AnnotationProperty _ -> ()
+    | C.NamedIndividual ind -> change_Individual_pc ont ind (PC.to_elt ~mult: cnt Polarity.Both)
+;; 
+let remove_Declaration ont ax =
+    change_Declaration_cnt ont ax (- 1)
+let add_Declaration ont ax =
+    change_Declaration_cnt ont ax 1
+
+let rec change_ObjectPropertyAxiom_cnt ont ax cnt =
+	let module M = ObjectPropertyAxiom.Map in
 	let module C = ObjectPropertyAxiom_Constructor in
-	if not (S.mem opa ont.record_ObjectPropertyAxiom) then
-		begin
-			ont.record_ObjectPropertyAxiom <- S.add opa
-				ont.record_ObjectPropertyAxiom;
-			match opa.data with
-			| C.SubObjectPropertyOf (ope_ch, ope) ->
-					List.iter (fun ope -> add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Negative)) ope_ch;
-					add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Positive);
-					ont.count_SubPropertyOf <- succ ont.count_SubPropertyOf
-			| C.EquivalentObjectProperties (ope_lst) ->
-					List.iter (fun ope -> add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Both)) ope_lst;
-					ont.count_EquivalentProperties <- succ ont.count_EquivalentProperties
-			| C.DisjointObjectProperties _ -> ()
-			| C.InverseObjectProperties (ope1, ope2) ->
-					add_ObjectPropertyExpression_pc ont ope1 (PC.to_elt Polarity.Both);
-					add_ObjectPropertyExpression_pc ont ope2 (PC.to_elt Polarity.Both);
-					ont.count_InverseProperties <- succ ont.count_InverseProperties
-			| C.ObjectPropertyDomain _ -> ()
-			| C.ObjectPropertyRange _ -> ()
-			| C.FunctionalObjectProperty ope ->
-					add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Negative);
-					ont.count_FunctionalProperty <- succ ont.count_FunctionalProperty
-			| C.InverseFunctionalObjectProperty ope ->
-					add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Negative);
-					ont.count_InverseFunctionalProperty <- succ ont.count_InverseFunctionalProperty
-			| C.ReflexiveObjectProperty _ -> ()
-			| C.IrreflexiveObjectProperty _ -> ()
-			| C.SymmetricObjectProperty _ -> ()
-			| C.AsymmetricObjectProperty _ -> ()
-			| C.TransitiveObjectProperty ope ->
-					add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Both);
-					ont.count_TransitiveProperty <- succ ont.count_TransitiveProperty
-		end
+	ont.record_ObjectPropertyAxiom <- M.process ax (function
+			| Some cnt_old ->
+					let cnt_new = cnt_old + cnt in
+					if cnt_new = 0 then None
+					else Some cnt
+			| None -> Some cnt
+		) ont.record_ObjectPropertyAxiom;
+	let case = C.case_of ax.data in
+	C.Cases.record_set ont.total_cases_ObjectPropertyAxiom case (
+			cnt + (C.Cases.record_get ont.total_cases_ObjectPropertyAxiom case)
+		);
+	propagate_ObjectPropertyAxiom_cnt ont ax cnt
+and propagate_ObjectPropertyAxiom_cnt ont ax cnt =
+	let module C = ObjectPropertyAxiom_Constructor in
+	match ax.data with
+	| C.SubObjectPropertyOf (ope_ch, ope) ->
+			List.iter (fun ope -> change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Negative)) ope_ch;
+			change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Positive);
+	| C.EquivalentObjectProperties (ope_lst) ->
+			List.iter (fun ope -> change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Both)) ope_lst;
+	| C.DisjointObjectProperties _ -> ()
+	| C.InverseObjectProperties (ope1, ope2) ->
+			change_ObjectPropertyExpression_pc ont ope1 (PC.to_elt ~mult: cnt Polarity.Both);
+			change_ObjectPropertyExpression_pc ont ope2 (PC.to_elt ~mult: cnt Polarity.Both);
+	| C.ObjectPropertyDomain _ -> ()
+	| C.ObjectPropertyRange _ -> ()
+	| C.FunctionalObjectProperty ope ->
+			change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Negative);
+	| C.InverseFunctionalObjectProperty ope ->
+			change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Negative);
+	| C.ReflexiveObjectProperty _ -> ()
+	| C.IrreflexiveObjectProperty _ -> ()
+	| C.SymmetricObjectProperty _ -> ()
+	| C.AsymmetricObjectProperty _ -> ()
+	| C.TransitiveObjectProperty ope ->
+			change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Both);
 ;;
+let remove_ObjectPropertyAxiom ont ax =
+	change_ObjectPropertyAxiom_cnt ont ax (- 1)
+let add_ObjectPropertyAxiom ont ax =
+	change_ObjectPropertyAxiom_cnt ont ax 1
 
-let add_ClassAxiom ont cea =
-	let module S = ClassAxiom.Set in
+let rec change_ClassAxiom_cnt ont ax cnt =
+	let module M = ClassAxiom.Map in
 	let module C = ClassAxiom_Constructor in
-	if not (S.mem cea ont.record_ClassAxiom) then
-		begin
-			ont.record_ClassAxiom <- S.add cea
-				ont.record_ClassAxiom;
-			match cea.data with
-			| C.SubClassOf (ce1, ce2) ->
-					add_ClassExpression_pc ont ce1 (PC.to_elt Polarity.Negative);
-					add_ClassExpression_pc ont ce2 (PC.to_elt Polarity.Positive);
-					ont.count_SubClassOf <- succ ont.count_SubClassOf
-			| C.EquivalentClasses (c_lst) ->
-					List.iter (fun ce -> add_ClassExpression_pc ont ce (PC.to_elt Polarity.Both)) c_lst;
-					ont.count_EquivalentClasses <- succ ont.count_EquivalentClasses
-			| C.DisjointClasses _ -> ()
-			| C.DisjointUnion _ -> ()
-		end
+	ont.record_ClassAxiom <- M.process ax (function
+			| Some cnt_old ->
+					let cnt_new = cnt_old + cnt in
+					if cnt_new = 0 then None
+					else Some cnt
+			| None -> Some cnt
+		) ont.record_ClassAxiom;
+	let case = C.case_of ax.data in
+	C.Cases.record_set ont.total_cases_ClassAxiom case (
+			cnt + (C.Cases.record_get ont.total_cases_ClassAxiom case)
+		);
+	propagate_ClassAxiom_cnt ont ax cnt
+and propagate_ClassAxiom_cnt ont ax cnt =
+	let module C = ClassAxiom_Constructor in
+	match ax.data with
+	| C.SubClassOf (ce1, ce2) ->
+			change_ClassExpression_pc ont ce1 (PC.to_elt ~mult: cnt Polarity.Negative);
+			change_ClassExpression_pc ont ce2 (PC.to_elt ~mult: cnt Polarity.Positive);
+	| C.EquivalentClasses (c_lst) ->
+			List.iter (fun ce -> change_ClassExpression_pc ont ce (PC.to_elt ~mult: cnt Polarity.Both)) c_lst;
+	| C.DisjointClasses _ -> ()
+	| C.DisjointUnion _ -> ()
 ;;
+let remove_ClassAxiom ont ax =
+	change_ClassAxiom_cnt ont ax (- 1)
+let add_ClassAxiom ont ax =
+	change_ClassAxiom_cnt ont ax 1
 
-let add_Assertion ont a =
-	let module S = Assertion.Set in
+let rec change_Assertion_cnt ont ax cnt =
+	let module M = Assertion.Map in
 	let module C = Assertion_Constructor in
-	if not (S.mem a ont.record_Assertion) then
-		begin
-			ont.record_Assertion <- S.add a
-				ont.record_Assertion;
-			match a.data with
-			| C.SameIndividual _ -> ()
-			| C.DifferentIndividuals _ -> ()
-			| C.ClassAssertion (ce, i) ->
-					add_ClassExpression_pc ont ce (PC.to_elt Polarity.Positive);
-					add_Individual_pc ont i Polarity.Negative;
-			| C.ObjectPropertyAssertion (ope, i1, i2) ->
-					add_ObjectPropertyExpression_pc ont ope (PC.to_elt Polarity.Positive);
-					add_Individual_pc ont i1 (PC.to_elt Polarity.Negative);
-					add_Individual_pc ont i2 (PC.to_elt Polarity.Negative);
-			| C.NegativeObjectPropertyAssertion _ -> ()
-			| C.DataPropertyAssertion _ -> ()
-			| C.NegativeDataPropertyAssertion _ -> ()
-		end
+	ont.record_Assertion <- M.process ax (function
+			| Some cnt_old ->
+					let cnt_new = cnt_old + cnt in
+					if cnt_new = 0 then None
+					else Some cnt
+			| None -> Some cnt
+		) ont.record_Assertion;
+	let case = C.case_of ax.data in
+	C.Cases.record_set ont.total_cases_Assertion case (
+			cnt + (C.Cases.record_get ont.total_cases_Assertion case)
+		);
+	propagate_Assertion_cnt ont ax cnt
+and propagate_Assertion_cnt ont ax cnt =
+	let module C = Assertion_Constructor in
+	match ax.data with
+	| C.SameIndividual _ -> ()
+	| C.DifferentIndividuals _ -> ()
+	| C.ClassAssertion (ce, i) ->
+			change_ClassExpression_pc ont ce (PC.to_elt ~mult: cnt Polarity.Positive);
+			change_Individual_pc ont i (PC.to_elt Polarity.Negative);
+	| C.ObjectPropertyAssertion (ope, i1, i2) ->
+			change_ObjectPropertyExpression_pc ont ope (PC.to_elt ~mult: cnt Polarity.Positive);
+			change_Individual_pc ont i1 (PC.to_elt ~mult: cnt Polarity.Negative);
+			change_Individual_pc ont i2 (PC.to_elt ~mult: cnt Polarity.Negative);
+	| C.NegativeObjectPropertyAssertion _ -> ()
+	| C.DataPropertyAssertion _ -> ()
+	| C.NegativeDataPropertyAssertion _ -> ()
 ;;
+let remove_Assertion ont ax =
+	change_Assertion_cnt ont ax (- 1)
+let add_Assertion ont ax =
+	change_Assertion_cnt ont ax 1
 
 (** =============== printing various information ================== **)
 
-let print_info ont ch_out =
-	let width = 30 in
+type info_type =
+	| All            (* about all OWL objects *)
+	| Used           (* about those used in the ontology *)
+	| Unsupported    (* about unsupported *)
+
+let print_info ?(info_type = Used) ont ch_out =
+	(* first column width *)
+	let width = 36 in
+	(* printing title *)
+	let print_title = ref (fun () -> ()) in
+	let title_printed = ref false in
+	(* printing header *)
+	let print_header = ref (fun () -> ()) in
+	let header_printed = ref false in
+	(* print pending titles or headers *)
+	let check_print () =
+		if (not !title_printed) then
+			(!print_title (); title_printed := true);
+		if (not !header_printed) then
+			(!print_header (); header_printed := true);
+	in
+	(* printing simple counters *)
 	let print item count =
-		if count > 0 then
-			fprintf ch_out "%-*s%6n\n" width item count
+		check_print ();
+		fprintf ch_out "%-*s%6n\n" width item count
 	in
-	let print_pc item pc =
-		if PC.get_total pc > 0 then
-			fprintf ch_out "%-*s%6n%8n\n"
-				width item (PC.get_pos pc) (PC.get_neg pc)
+	let print = match info_type with
+		| All -> print
+		| Used | Unsupported ->
+				fun item count ->
+						if count > 0 then print item count
 	in
-	fprintf ch_out "%-*s\n" width "Ontology information:";
-	fprintf ch_out "%s\n" (String.make width '=');
-	fprintf ch_out "%-*s\n" width "Signature (element counts):";
-	fprintf ch_out "%s\n" (String.make width '-');
-	print "object properties:" (total_ObjectPropertyIRI ont);
-	print "classes:" (total_ClassIRI ont);
-	print "individuals" (total_IndividualIRI ont);
-	fprintf ch_out "\n";
-	fprintf ch_out "%-*s%6s%8s\n" width
-		"Structure (expression counts):" "(pos)" "(neg)";
-	fprintf ch_out "%s\n" (String.make width '-');
-	print_pc "\"owl:Thing\":" (count_Thing ont);
-	print_pc "\"owl:Nothing\":" (count_Nothing ont);
-	print_pc "ObjectInverseOf:" (count_ObjectInverseOf ont);
-	print_pc "ObjectIntersectionOf:" (count_ObjectIntersectionOf ont);
-	print_pc "ObjectUnionOf:" (count_ObjectUnionOf ont);
-	print_pc "ObjectComplementOf:" (count_ObjectComplementOf ont);
-	print_pc "ObjectOneOf:" (count_ObjectOneOf ont);
-	print_pc "ObjectSomeValuesFrom:" (count_ObjectSomeValuesFrom ont);
-	print_pc "ObjectAllValuesFrom:" (count_ObjectAllValuesFrom ont);
-	print_pc "ObjectHasValue:" (count_ObjectHasValue ont);
-	print_pc "ObjectHasSelf:" (count_ObjectHasSelf ont);
-	print_pc "ObjectMinCardinality:" (count_ObjectMinCardinality ont);
-	print_pc "ObjectMaxCardinality:" (count_ObjectMaxCardinality ont);
-	print_pc "ObjectExactCardinality:" (count_ObjectExactCardinality ont);
-	print_pc "DataSomeValuesFrom:" (count_DataSomeValuesFrom ont);
-	print_pc "DataAllValuesFrom:" (count_DataAllValuesFrom ont);
-	print_pc "DataHasValue:" (count_DataHasValue ont);
-	print_pc "DataMinCardinality:" (count_DataMinCardinality ont);
-	print_pc "DataMaxCardinality:" (count_DataMaxCardinality ont);
-	print_pc "DataExactCardinality:" (count_DataExactCardinality ont);
-	fprintf ch_out "\n";
-	fprintf ch_out "%-*s\n" width "Theory (axiom counts):";
-	fprintf ch_out "%s\n" (String.make width '-');
-	print "SubPropertyOf:" (total_SubPropertyOf ont);
-	print "EquivalentProperties:" (total_EquivalentProperties ont);
-	print "InverseProperties:" (total_InverseProperties ont);
-	print "FunctionalProperty:" (total_FunctionalProperty ont);
-	print "InverseFunctionalProperty:" (total_InverseFunctionalProperty ont);
-	print "TransitiveProperty:" (total_TransitiveProperty ont);
-	print "SubClassOf:" (total_SubClassOf ont);
-	print "EquivalentClasses:" (total_EquivalentClasses ont);
-	print "ClassAssertion:" (total_ClassAssertion ont);
-	print "PropertyAssertion:" (total_PropertyAssertion ont);
-	fprintf ch_out "\n";
+	(* for supported constructors *)
+	let print_sp = match info_type with
+		| All | Used -> print
+		| Unsupported -> fun item count -> ()
+	in
+	(* printing polarity counters *)
+	let string_of_counter = match info_type with
+		| All -> string_of_int
+		| Used | Unsupported ->
+				fun n -> if n = 0 then "" else string_of_int n
+	in
+	let print_pc item pos neg =
+		check_print ();
+		fprintf ch_out "%-*s%6s%8s\n"
+			width item
+			(string_of_counter pos)
+			(string_of_counter neg)
+	in
+	let print_pc = match info_type with
+		| All -> print_pc
+		| Used | Unsupported ->
+				fun item pos neg ->
+						if pos + neg > 0 then print_pc item pos neg
+	in
+	let print_pc ?(pol = Polarity.Both) item pc =
+		print_pc item
+			(if Polarity.is_positive pol then PC.get_pos pc else 0)
+			(if Polarity.is_negative pol then PC.get_neg pc else 0)
+	in
+	(* for supported constructors *)
+	let print_pc_sp ?(pol = Polarity.Both) = match info_type with
+		| All | Used -> print_pc ~pol: Polarity.Both
+		| Unsupported ->
+				if pol = Polarity.Both then fun _ _ -> ()
+				else print_pc ~pol: (Polarity.invert pol)
+	in
+	title_printed := false;
+	print_title := (fun () ->
+				begin match info_type with
+					| All | Used ->
+							fprintf ch_out "%s\n" (String.make (width + 14) '~');
+							fprintf ch_out "%-*s\n" width "Ontology information:";
+							fprintf ch_out "%s\n" (String.make (width + 14) '~');
+					| Unsupported ->
+							fprintf ch_out "%s\n" (String.make (width + 14) '~');
+							fprintf ch_out "%-*s\n" width "Warning: Reasoning can be incomplete!";
+							fprintf ch_out "%s\n" (String.make (width + 14) '~');
+				end);
+	header_printed := false;
+	print_header := (fun () ->
+				begin match info_type with
+					| All | Used ->
+							fprintf ch_out "%-*s\n" width "Signature (element counts):";
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+					| Unsupported ->
+							fprintf ch_out "%-*s\n" width "Unsupported signature elements:";
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+				end);
+	print_sp "classes:" ont.count_Class;
+	print "datatypes:" ont.count_Datatype;
+	print "constraining facets:" ont.count_ConstrainingFacet;
+	print_sp "object properties:" ont.count_ObjectProperty;
+	print "data properties:" ont.count_DataProperty;
+	print "individuals:" ont.count_Individual;
+	
+	header_printed := false;
+	print_header := (fun () ->
+				begin match info_type with
+					| All | Used ->
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+							fprintf ch_out "%-*s%6s%8s\n" width
+								"Structure (expression counts):" "(pos)" "(neg)";
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+					| Unsupported ->
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+							fprintf ch_out "%-*s%6s%8s\n" width
+								"Unsupported constructors:" "(pos)" "(neg)";
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+				end);
+	let module C = Class_Constructor.Cases in
+	C.iter (function
+			| C.IRI -> ()
+			| _ as case ->
+					(match C.record_get supported_Class_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_Class case);
+		);
+	let module C = Datatype_Constructor.Cases in
+	C.iter (function
+			| C.IRI -> ()
+			| _ as case ->
+					(match C.record_get supported_Datatype_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_Datatype case);
+		);
+	let module C = ConstrainingFacet_Constructor.Cases in
+	C.iter (function
+			| C.IRI -> ()
+			| _ as case ->
+					(match C.record_get supported_ConstrainingFacet_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_ConstrainingFacet case);
+		);
+	let module C = ObjectProperty_Constructor.Cases in
+	C.iter (function
+			| C.IRI -> ()
+			| _ as case ->
+					(match C.record_get supported_ObjectProperty_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_ObjectProperty case);
+		);
+	let module C = DataProperty_Constructor.Cases in
+	C.iter (function
+			| C.IRI -> ()
+			| _ as case ->
+					(match C.record_get supported_DataProperty_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_DataProperty case);
+		);
+	let module C = Individual_Constructor.Cases in
+	C.iter (function
+			| C.NamedIndividual -> ()
+			| C.AnonymousIndividual -> ()
+			(*|			| _ as case ->                                                             *)
+			(*|					(match C.record_get supported_Individual_Constructor case with         *)
+			(*|						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc               *)
+			(*|						| None -> fun id pc -> print_pc id pc                                *)
+			(*|					) (C.str_of case ^ ":") (C.record_get ont.total_cases_Individual case);*)
+		);
+	let module C = ObjectPropertyExpression_Constructor.Cases in
+	C.iter (function
+			| C.ObjectProperty -> ()
+			| _ as case ->
+					(match C.record_get supported_ObjectPropertyExpression_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_ObjectPropertyExpression case);
+		);
+	let module C = ClassExpression_Constructor.Cases in
+	C.iter (function
+			| C.Class -> ()
+			| C.ObjectIntersectionOfrec -> ()
+			| _ as case ->
+					(match C.record_get supported_ClassExpression_Constructor case with
+						| Some pol -> fun id pc -> print_pc_sp ~pol: pol id pc
+						| None -> fun id pc -> print_pc id pc
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_ClassExpression case);
+		);
+	header_printed := false;
+	print_header := (fun () ->
+				begin match info_type with
+					| All | Used ->
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+							fprintf ch_out "%-*s\n" width "Theory (axiom counts):";
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+					| Unsupported ->
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+							fprintf ch_out "%-*s\n" width "Unsupported axioms:";
+							fprintf ch_out "%s\n" (String.make (width + 14) '-');
+				end);
+(*|	let module C = Declaration_Constructor.Cases in                                   *)
+(*|    C.iter (fun case ->                                                             *)
+(*|            (match C.record_get supported_Declaration_Constructor case with         *)
+(*|              | true -> print_sp                                                    *)
+(*|              | false -> print                                                      *)
+(*|            ) (C.str_of case ^ ":") (C.record_get ont.total_cases_Declaration case);*)
+(*|        );			                                                                    *)
+	let module C = ObjectPropertyAxiom_Constructor.Cases in
+	C.iter (fun case ->
+					(match C.record_get supported_ObjectPropertyAxiom_Constructor case with
+						| true -> print_sp
+						| false -> print
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_ObjectPropertyAxiom case);
+		);
+	let module C = ClassAxiom_Constructor.Cases in
+	C.iter (fun case ->
+					(match C.record_get supported_ClassAxiom_Constructor case with
+						| true -> print_sp
+						| false -> print
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_ClassAxiom case);
+		);
+	let module C = Assertion_Constructor.Cases in
+	let supported_Assertion_Constructor = C.record_create false in
+	C.iter (fun case ->
+					(match C.record_get supported_Assertion_Constructor case with
+						| true -> print_sp
+						| false -> print
+					) (C.str_of case ^ ":") (C.record_get ont.total_cases_Assertion case);
+		);
+	
+	if !title_printed then
+		fprintf ch_out "%s\n" (String.make (width + 14) '~');
 ;;
