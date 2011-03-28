@@ -16,8 +16,6 @@ let to_elt r = match r.data with
 
 let inv (a, ata) = a, (not ata)
 
-let str (a, ata) = Owl_io.str_of_ObjectProperty a ^ (if ata then "" else "-")
-
 module Set = struct
   module S = ObjectProperty.Set
   type elt = t
@@ -105,7 +103,7 @@ module Set = struct
       (List.map (fun a -> (a, true)) (S.elements sa))
       (List.map (fun a -> (a, false)) (S.elements si))
   
-  let choose (sa, si) =
+  let choose (sa, _) =
     try (S.choose sa, true)
     with Not_found -> (S.choose sa, false)
   
@@ -131,8 +129,6 @@ module Set = struct
   
   (* extracting the set of atomic roles *)
   let atomic (sa, si) = S.union sa si
-  
-  let str s = fold (fun a s -> s ^ str a) s "[ " ^ "]"
 end
 
 module Map = struct

@@ -3,7 +3,7 @@ type t = {
 	(* starting the progress monitor with a message *)
 	start : string -> int -> unit;
 	(* increment the current progress value *)
-	step: unit -> unit;
+	step: ?step: int -> unit -> unit;
 	(* decrement the current status value *)
 	back: unit -> unit;
 	(* jumping to a particular status value *)
@@ -17,7 +17,7 @@ type t = {
 }
 
 val start : t list -> string -> int -> unit
-val step : t list -> unit
+val step : ?step: int -> t list -> unit
 val back : t list -> unit
 val jump : t list -> int -> unit
 val incr_max : t list -> unit

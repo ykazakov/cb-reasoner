@@ -1,1 +1,2 @@
 <jni>: include
+<**/libjcb*> or <**/jcb*>: jni, use_unix

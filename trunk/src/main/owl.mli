@@ -117,6 +117,7 @@ and Datatype_Constructor : sig
     | Xsd_dateTimeStamp
     | Rdf_XMLLiteral
   make_type
+	make_cases	
 end
 
 and Datatype : sig 
@@ -139,6 +140,7 @@ and ConstrainingFacet_Constructor : sig
 			| Xsd_pattern
 			| Rdf_langRange
 		make_type
+		make_cases
 end
 
 and ConstrainingFacet : sig	
@@ -154,6 +156,7 @@ and ObjectProperty_Constructor : sig
 			| TopObjectProperty
 			| BottomObjectProperty
 		make_type
+		make_cases
 end
 
 and ObjectProperty : sig
@@ -169,6 +172,7 @@ and DataProperty_Constructor : sig
 			| TopDataProperty
 			| BottomDataProperty
 		make_type
+		make_cases
 end
 
 and DataProperty : sig 
@@ -190,7 +194,8 @@ and AnnotationProperty_Constructor : sig
 			| Owl_priorVersion
 			| Owl_backwardCompatibleWith
 			| Owl_incompatibleWith
-		make_type 
+		make_type
+		make_cases
 end
 
 and AnnotationProperty : sig	
@@ -206,6 +211,7 @@ and Class_Constructor : sig
 			| Thing
 			| Nothing
 		make_type
+		make_cases
 end
 
 and Class : sig 
@@ -220,6 +226,7 @@ and Individual_Constructor : sig
 			| NamedIndividual of IRI
 			| AnonymousIndividual of NodeID
 		make_type
+		make_cases
 end
 
 and Individual : sig
@@ -235,10 +242,30 @@ and Literal_Constructor : sig
 			| StringLiteralNoLanguage of O_string
 			| StringLiteralWithLanguage of O_string * O_string
 		make_type
+		make_cases
 end
 
-and Literal : (CommonConsed.S with type key = Literal_Constructor.t)
+and Literal : sig
+  include CommonExtended.S with type t = Literal_Constructor.t
+  val str_of : t -> string
+end
 
+(**=================== Declarations =====================**)
+
+and Declaration_Constructor : sig
+    save
+      | Class of Class        
+      | Datatype of Datatype
+      | ObjectProperty of ObjectProperty
+      | DataProperty of DataProperty
+      | AnnotationProperty of AnnotationProperty
+      | NamedIndividual of Individual
+      make_ohtype
+      make_cases
+end
+    
+and Declaration : (CommonConsed.S with type key = Declaration_Constructor.t)
+   
 (**============ Object Property Expressions =============**)
 
 and ObjectPropertyExpression_Constructor : sig
@@ -246,6 +273,7 @@ and ObjectPropertyExpression_Constructor : sig
 			| ObjectProperty of ObjectProperty
 			| ObjectInverseOf of ObjectProperty
 		make_type
+		make_cases
 end
 
 and ObjectPropertyExpression : (CommonConsed.S with type key = ObjectPropertyExpression_Constructor.t)
@@ -256,6 +284,7 @@ and DataPropertyExpression_Constructor : sig
 		save
 			| DataProperty of DataProperty
 		make_type
+		make_cases
 end
 
 and DataPropertyExpression : (CommonConsed.S with type key = DataPropertyExpression_Constructor.t)
@@ -270,7 +299,8 @@ and DataRange_Constructor : sig
 			| DataComplementOf of DataRange
 			| DataOneOf of Literal O_list
 			| DatatypeRestriction of Datatype * ((ConstrainingFacet * Literal) O_list)
-		make_type 
+		make_type
+		make_cases
 end
 
 and DataRange : (CommonConsed.S with type key = DataRange_Constructor.t)
@@ -299,7 +329,8 @@ and ClassExpression_Constructor : sig
 			| DataMinCardinality of O_int * DataPropertyExpression * DataRange O_option
 			| DataMaxCardinality of O_int * DataPropertyExpression * DataRange O_option
 			| DataExactCardinality of O_int * DataPropertyExpression * DataRange O_option
-   make_type 
+   make_type
+	 make_cases
 end
 
 and ClassExpression : (CommonConsed.S with type key = ClassExpression_Constructor.t)
@@ -313,6 +344,7 @@ and ClassAxiom_Constructor : sig
 			| DisjointClasses of ClassExpression O_list
 			| DisjointUnion of Class * ClassExpression O_list
 		make_type
+		make_cases
 end
 
 and ClassAxiom : (CommonConsed.S with type key = ClassAxiom_Constructor.t)
@@ -335,6 +367,7 @@ and ObjectPropertyAxiom_Constructor : sig
 			| AsymmetricObjectProperty of ObjectPropertyExpression
 			| TransitiveObjectProperty of ObjectPropertyExpression
 		make_type
+		make_cases
 end
 
 and ObjectPropertyAxiom : (CommonConsed.S with type key = ObjectPropertyAxiom_Constructor.t)
@@ -350,6 +383,7 @@ and DataPropertyAxiom_Constructor : sig
 			| DataPropertyRange of DataPropertyExpression * DataRange
 			| FunctionalDataProperty of DataPropertyExpression
 		make_type
+		make_cases
 end
 
 and DataPropertyAxiom : (CommonConsed.S with type key = DataPropertyAxiom_Constructor.t)
@@ -360,6 +394,7 @@ and DatatypeDefinition_Constructor : sig
 	save
 			| DatatypeDefinition of Datatype * DataRange
 	make_type
+	make_cases
 end
 
 and DatatypeDefinition : (CommonConsed.S with type key = DatatypeDefinition_Constructor.t)
@@ -370,6 +405,7 @@ and Key_Constructor : sig
 		save
 			| HasKey of ClassExpression * ObjectPropertyExpression O_list * DataPropertyExpression O_list
 		make_type
+		make_cases
 end
 
 and Key : (CommonConsed.S with type key = Key_Constructor.t)
@@ -386,6 +422,7 @@ and Assertion_Constructor : sig
 			| DataPropertyAssertion of DataPropertyExpression * Individual * Literal
 			| NegativeDataPropertyAssertion of DataPropertyExpression * Individual * Literal
 		make_type
+		make_cases
 end
 
 and Assertion : (CommonConsed.S with type key = Assertion_Constructor.t)
@@ -397,6 +434,7 @@ and AnnotationSubject_Constructor : sig
 			| IRI of IRI
 			| AnonymousIndividual of NodeID
 		make_type
+		make_cases
 end
 
 and AnnotationSubject : (CommonConsed.S with type key = AnnotationSubject_Constructor.t)
@@ -409,6 +447,7 @@ and AnnotationValue_Constructor : sig
 			| IRI of IRI
 			| Literal of Literal
 		make_type
+		make_cases
 end
 
 and AnnotationValue : (CommonConsed.S with type key = AnnotationValue_Constructor.t)
@@ -419,6 +458,7 @@ and Annotation_Constructor : sig
 		save
 			| Annotation of Annotation O_list * AnnotationProperty * AnnotationValue
 		make_type
+		make_cases
 end
 
 and Annotation : (CommonConsed.S with type key = Annotation_Constructor.t)
@@ -432,6 +472,7 @@ and AnnotationAxiom_Constructor : sig
 			| AnnotationPropertyDomain of Annotation O_list * AnnotationProperty * IRI
 			| AnnotationPropertyRange of Annotation O_list * AnnotationProperty * IRI
 		make_type
+		make_cases
 end
 
 and AnnotationAxiom : (CommonConsed.S with type key = AnnotationAxiom_Constructor.t)

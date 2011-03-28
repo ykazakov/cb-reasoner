@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<plugin>
-    <extension id="CB.reasoner.factory" point="org.protege.editor.owl.inference_reasonerfactory">
-        <name value="CB @VERSION@"/>
-        <label value="CB @VERSION@"/>
-        <class value="org.semanticweb.cb.ProtegeReasonerFactory"/>
-    </extension>
-</plugin>

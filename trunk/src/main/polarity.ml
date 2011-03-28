@@ -34,15 +34,15 @@ module Counter = struct
     
   let get_pos c = c.pos
   let get_neg c = c.neg  
-  let get_total c = c.pos + c.neg
   
   let zero = { pos = 0; neg = 0}
+	let is_zero c = (c.pos == 0) && (c.neg == 0)
   let invert c = { pos = c.neg; neg = c.pos }
   let symm c = { pos = c.pos + c.neg; neg = c.pos + c.neg }
-  let to_elt = function
-    | Positive -> { zero with pos = 1}
-    | Negative -> { zero with neg = 1}
-    | Both -> {pos = 1; neg = 1}  
+  let to_elt ?(mult = 1) = function
+    | Positive -> { zero with pos = mult}
+    | Negative -> { zero with neg = mult}
+    | Both -> {pos = mult; neg = mult}  
   let succ c = function
     | Positive -> { c with pos = succ c.pos }
     | Negative -> { c with neg = succ c.neg }

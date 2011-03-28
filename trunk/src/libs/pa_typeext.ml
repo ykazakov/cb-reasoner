@@ -223,6 +223,83 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
 	let sig_item_compare _loc =
     <:sig_item< value compare : t -> t -> int >>	
 		
+	(* manipulating with case variants *)  
+	(* creating the type of cases *)
+  let cases_t_variant _loc (uid, _) = <:ctyp< $uid:uid$ >>      
+  let cases_t_expr _loc = function        
+        | VariantType v_list -> 
+            <:ctyp< [ $Ast.tyOr_of_list (List.map (cases_t_variant _loc) v_list)$ ] >>
+        | _ -> invalid_arg "cases_t_expr"
+  (* matching *)
+	let case_of_t_variant _loc (uid, t_list) =
+		match t_list with
+			| [] -> <:match_case< $uid:uid$ -> Cases.$uid:uid$ >>
+			| _ -> <:match_case< $uid:uid$ _ -> Cases.$uid:uid$ >>		      
+  let case_of_t_expr _loc = function        
+        | VariantType v_list ->
+					Ast.mcOr_of_list (List.map (case_of_t_variant _loc) v_list)
+        | _ -> invalid_arg "cases_of_t_expr"
+	(* counting the no of cases *)
+	let case_count_t_expr _loc = function
+        | VariantType v_list -> List.length v_list
+        | _ -> invalid_arg "cases_count_t_expr"
+	(* printing *)
+	let case_str_of_t_variant _loc (uid, _) =     
+       <:match_case< $uid:uid$ -> $str:uid$ >>
+	let case_str_of_t_expr _loc = function
+        | VariantType v_list -> 
+					Ast.mcOr_of_list (List.map (case_str_of_t_variant _loc) v_list)
+        | _ -> invalid_arg "cases_str_of_t_expr"		 
+	(* getting a value for a record *)
+  let case_record_get_t_variant _loc n (uid, _) =     
+       <:match_case< $uid:uid$ -> r.($`int:n$) >>
+  let case_record_get_t_expr _loc = function
+        | VariantType v_list -> 
+          let n = ref 0 in
+          let gen () = incr n; pred !n in
+          Ast.mcOr_of_list (List.map (fun case -> case_record_get_t_variant _loc (gen ()) case) v_list)
+        | _ -> invalid_arg "case_record_get_t_expr"
+	(* setting a value for a record *)
+	let case_record_set_t_variant _loc n (uid, _) =		
+	   <:match_case< $uid:uid$ -> r.($`int:n$) := v >>
+	let case_record_set_t_expr _loc = function
+        | VariantType v_list -> 
+					let n = ref 0 in
+          let gen () = incr n; pred !n in
+					Ast.mcOr_of_list (List.map (fun case -> case_record_set_t_variant _loc (gen ()) case) v_list)
+        | _ -> invalid_arg "case_record_set_t_expr"	
+	(* iterate over cases *)
+  let cases_iter_t_variant _loc (uid, _) =     
+       <:expr< f $uid:uid$ >>
+  let cases_iter_t_expr _loc = function
+        | VariantType v_list ->
+					Ast.exSem_of_list (List.map (cases_iter_t_variant _loc) v_list)
+        | _ -> invalid_arg "cases_iter_of_t_expr"	
+	let str_item_cases _loc t = 
+      <:str_item< module Cases = struct 
+				type t = $cases_t_expr _loc t$;
+				value str_of = fun [$case_str_of_t_expr _loc t$];
+				value iter f = do $cases_iter_t_expr _loc t$ done;
+				type record 'a = array 'a;
+				value record_create v = Array.create $`int:case_count_t_expr _loc t$ v;
+				value record_get r = fun [$case_record_get_t_expr _loc t$];
+				value record_set r case v = match case with [$case_record_set_t_expr _loc t$];				  
+			end;
+			value case_of = fun [$case_of_t_expr _loc t$];
+			>>
+  let sig_item_cases _loc t = 
+      <:sig_item< module Cases : sig 
+				type t = $cases_t_expr _loc t$;
+				value str_of : t -> string;
+				value iter : (t -> unit) -> unit;
+				type record 'a;
+				value record_create : 'a -> record 'a;
+				value record_get : record 'a -> t -> 'a;
+				value record_set : record 'a -> t -> 'a -> unit;
+			end; 
+			value case_of : t -> Cases.t;
+			>>   	
+	
 	(** parsing *)
   
 	let t_top = Gram.Entry.mk "t_top"
@@ -235,14 +312,16 @@ module Make (Syntax : Sig.Camlp4Syntax) = struct
     str_item: LEVEL "top"
       [ [ "save"; t = t_top -> mt := t; <:str_item< >> 
         | "make_type" -> str_item_type _loc !mt
+				| "make_cases" -> str_item_cases _loc !mt
 				| "make_hash"; hf = a_LIDENT -> str_item_hash _loc hf !mt
         | "make_equal" -> str_item_equal _loc !mt
-				| "make_compare" -> str_item_compare _loc !mt
+				| "make_compare" -> str_item_compare _loc !mt				
       ] ]
     ;
 	  sig_item: LEVEL "top"
       [ [ "save"; m = t_top -> mt := m; <:sig_item< >> 
         | "make_type" -> sig_item_type _loc !mt
+				| "make_cases" -> sig_item_cases _loc !mt
 				| "make_ohtype" -> <:sig_item< $sig_item_type _loc !mt$; $sig_item_hash _loc$; $sig_item_equal _loc$; $sig_item_compare _loc$ >>      
       ] ]
     ;

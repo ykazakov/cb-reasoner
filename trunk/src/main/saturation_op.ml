@@ -129,19 +129,9 @@ let rec process_implset_stack t index =
 			process_implset_stack t index
 ;;
 
-(* a strightforward printing of implication sets *)
-
-let print t ont out =
-	O.iter_record_ObjectProperty ( fun op _ ->
-					Printf.fprintf out "%s: " (Owl_io.str_of_ObjectProperty op);
-					Printf.fprintf out "subproperties: %s; " (RS.str (find_subproperties t op));
-					Printf.fprintf out "sub-transitive: %s\n" (RS.str (find_sub_trans t op));
-		) ont;
-;;
-
 let compute ont =
 	let index = I.init ont in
-	let t = create (O.total_ObjectPropertyIRI ont) in
+	let t = create (O.count_ObjectProperty ont) in
 	
 	H.iter ( fun a _ ->
 					let _ = cons t index a in
@@ -160,24 +150,24 @@ let compute ont =
 	S.iter (fun ar ->
 					let sa, si = find_subproperties t ar in
 					S.iter2 (fun tr ->
-									Printf.fprintf stderr "Warning! transitive functional role %s!\n"
-										(Owl_io.str_of_ObjectProperty tr)
+									Printf.fprintf stderr "Warning! transitive functional property %s!\n"
+										(ObjectProperty.str_of tr)
 						) sa index.I.trans_roles;
 					S.iter2 (fun tr ->
-									Printf.fprintf stderr "Warning! transitive functional role %s!\n"
-										(Owl_io.str_of_ObjectProperty tr)
+									Printf.fprintf stderr "Warning! transitive functional property %s!\n"
+										(ObjectProperty.str_of tr)
 						) si index.I.trans_roles;
 		) index.I.funct_roles;
 	
 	S.iter (fun ar ->
 					let sa, si = find_subproperties t ar in
 					S.iter2 (fun tr ->
-									Printf.fprintf stderr "Warning! transitive inverse functional role %s!\n"
-										(Owl_io.str_of_ObjectProperty tr)
+									Printf.fprintf stderr "Warning! transitive inverse functional property %s!\n"
+										(ObjectProperty.str_of tr)
 						) sa index.I.trans_roles;
 					S.iter2 (fun tr ->
-									Printf.fprintf stderr "Warning! transitive inverse functional role %s!\n"
-										(Owl_io.str_of_ObjectProperty tr)
+									Printf.fprintf stderr "Warning! transitive inverse functional property %s!\n"
+										(ObjectProperty.str_of tr)
 						) si index.I.trans_roles;
 		) index.I.inv_funct_roles;
 	
