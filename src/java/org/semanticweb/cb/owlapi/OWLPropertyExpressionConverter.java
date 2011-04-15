@@ -1,15 +1,15 @@
 package org.semanticweb.cb.owlapi;
 
-import org.semanticweb.cb.reasoner.CBObjectInverseOf;
-import org.semanticweb.cb.reasoner.CBObjectProperty;
-import org.semanticweb.cb.reasoner.CBObjectPropertyExpression;
+import org.semanticweb.cb.reasoner.CbObjectInverseOf;
+import org.semanticweb.cb.reasoner.CbObjectProperty;
+import org.semanticweb.cb.reasoner.CbObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitorEx;
 
 public final class OWLPropertyExpressionConverter implements
-		OWLPropertyExpressionVisitorEx<CBObjectPropertyExpression> {
+		OWLPropertyExpressionVisitorEx<CbObjectPropertyExpression> {
 			
 	private static final OWLPropertyExpressionConverter converter = new OWLPropertyExpressionConverter();
 	private OWLPropertyExpressionConverter() {		
@@ -20,17 +20,17 @@ public final class OWLPropertyExpressionConverter implements
 	}
 
 	@Override
-	public CBObjectProperty visit(OWLObjectProperty op) {
-		return new CBObjectProperty(op.getIRI().toString());
+	public CbObjectProperty visit(OWLObjectProperty op) {
+		return new CbObjectProperty(op.getIRI().toString());
 	}
 
 	@Override
-	public CBObjectInverseOf visit(OWLObjectInverseOf op) {
-		return new CBObjectInverseOf(op.getNamedProperty().getIRI().toString());
+	public CbObjectInverseOf visit(OWLObjectInverseOf op) {
+		return new CbObjectInverseOf(op.getNamedProperty().getIRI().toString());
 	}
 
 	@Override
-	public CBObjectPropertyExpression visit(OWLDataProperty op) {
+	public CbObjectPropertyExpression visit(OWLDataProperty op) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(op.getEntityType().getName() + " not supported");
 	}

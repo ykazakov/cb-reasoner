@@ -1,12 +1,12 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBClassTaxonomyNode.h"
+#include "org_semanticweb_cb_reasoner_CbClassTaxonomyNode.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyNode_destruct(JNIEnv *env,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbClassTaxonomyNode_destruct(JNIEnv *env,
 		jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBCN *cn = (CBCN *) (intptr_t) ptr;
 		cb_class_node_delete(cn);
@@ -16,7 +16,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyNode_dest
 /* constructors */
 
 /* methods */
-JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyNode_getCBClasses(
+JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CbClassTaxonomyNode_getClasses(
 		JNIEnv *env, jobject self) {
 	int i, len;
 	jobjectArray res;
@@ -36,7 +36,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyN
 	return (res);
 }
 
-JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyNode_getChildNodes(JNIEnv *env,
+JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CbClassTaxonomyNode_getChildNodes(JNIEnv *env,
 		jobject self) {
 	int i, len;
 	jobjectArray res;
@@ -56,7 +56,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyN
 	return (res);
 }
 
-JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBClassTaxonomyNode_getParentNodes(JNIEnv *env,
+JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CbClassTaxonomyNode_getParentNodes(JNIEnv *env,
 		jobject self) {
 	int i, len;
 	jobjectArray res;

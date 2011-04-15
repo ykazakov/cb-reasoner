@@ -1,11 +1,11 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBOntology.h"
+#include "org_semanticweb_cb_reasoner_CbOntology.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_destruct(JNIEnv *env, jobject self) {
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_destruct(JNIEnv *env, jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBONT *ont = (CBONT *) (intptr_t) ptr;
 		cb_ontology_delete(ont);
@@ -13,16 +13,16 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_destruct(JNIE
 }
 
 /* constructors */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_create(JNIEnv *env, jobject self) {
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_getPtr(JNIEnv *env, jobject self) {
 	CBONT *ont = cb_ontology_new();
 	if (!ont)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t) ont);
+	return (intptr_t) ont;
 }
 
 /* adding and removing axioms */
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_addDeclarationAxiom(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_addDeclarationAxiom(JNIEnv *env, jobject self,
 		jobject dax) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBDAX *daxptr = (CBDAX *) get_ptr(env, dax);
@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_addDeclaratio
 	;
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_removeDeclarationAxiom(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_removeDeclarationAxiom(JNIEnv *env, jobject self,
 		jobject dax) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBDAX *daxptr = (CBDAX *) get_ptr(env, dax);
@@ -40,7 +40,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_removeDeclara
 	;
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_addClassAxiom(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_addClassAxiom(JNIEnv *env, jobject self,
 		jobject cax) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBCAX *caxptr = (CBCAX *) get_ptr(env, cax);
@@ -49,7 +49,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_addClassAxiom
 	;
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_removeClassAxiom(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_removeClassAxiom(JNIEnv *env, jobject self,
 		jobject cax) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBCAX *caxptr = (CBCAX *) get_ptr(env, cax);
@@ -58,7 +58,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_removeClassAx
 	;
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_addObjectPropertyAxiom(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_addObjectPropertyAxiom(JNIEnv *env, jobject self,
 		jobject opax) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBOPAX *opaxptr = (CBOPAX *) get_ptr(env, opax);
@@ -66,7 +66,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_addObjectProp
 		CBthrow_exception(env);
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_removeObjectPropertyAxiom(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_removeObjectPropertyAxiom(JNIEnv *env, jobject self,
 		jobject opax) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBOPAX *opaxptr = (CBOPAX *) get_ptr(env, opax);
@@ -75,13 +75,13 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_removeObjectP
 }
 
 /* print statistics */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_printInfo(JNIEnv *env, jobject self) {
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_printInfo(JNIEnv *env, jobject self) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	if (!cb_ontology_print_info(ont))
 		CBthrow_exception(env);
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_classify(JNIEnv *env, jobject self) {
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_classify(JNIEnv *env, jobject self) {
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	if (!cb_ontology_classify(ont))
 		CBthrow_exception(env);
@@ -127,7 +127,7 @@ void call_pm_finish(void * jpm) {
 	(*env)->CallVoidMethod(env, pm->obj, pm->finish);
 }
 
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_classifyPm(JNIEnv *env, jobject self,
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_classifyPm(JNIEnv *env, jobject self,
 		jobject jpmobj) {
 	JPM jpm = create_jpm(env, jpmobj);
 	PM pm;
@@ -142,13 +142,12 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_classifyPm(JN
 }
 
 /* retrieving nodes */
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBOntology_getClassTaxonomyNode(
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbOntology_getClassTaxonomyNodePtr(
 		JNIEnv *env, jobject self, jobject ce) {
-	jclass cls_cn = (*env)->FindClass(env, CLSCBClassTaxonomyNode);
 	CBONT *ont = (CBONT *) get_ptr(env, self);
 	CBCE *ceptr = (CBCE *) get_ptr(env, ce);
 	CBCN *cn = cb_class_node_get(ont, ceptr);
 	if (!cn)
 		CBthrow_exception(env);
-	return new_obj(env, cls_cn, (intptr_t) cn);
+	return (intptr_t) cn;
 }

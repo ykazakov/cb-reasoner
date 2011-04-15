@@ -1,17 +1,17 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBObjectPropertyAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBSubObjectPropertyOfAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBInverseObjectPropertiesAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBFunctionalObjectPropertyAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBInverseFunctionalObjectPropertyAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBTransitiveObjectPropertyAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbObjectPropertyAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbSubObjectPropertyOfAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbInverseObjectPropertiesAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbFunctionalObjectPropertyAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbInverseFunctionalObjectPropertyAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbTransitiveObjectPropertyAxiom.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyAxiom_destruct
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbObjectPropertyAxiom_destruct
 (JNIEnv *env, jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBOPAX *ax = (CBOPAX *)(intptr_t)ptr;
 		cb_object_property_axiom_delete(ax);
@@ -21,7 +21,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyAxiom_de
 /* constructors */
 
 /* sub-object-property-of axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBSubObjectPropertyOfAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbSubObjectPropertyOfAxiom_getPtr
 (JNIEnv *env, jobject self, jobjectArray opearr, jobject opeb) {
 	jsize len = (*env)->GetArrayLength(env, opearr);
 	CBOPE **opeptrs = malloc(len * sizeof(CBOPE *));
@@ -36,47 +36,47 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBSubObjectPropertyOfAxi
 	ax = cb_sub_object_property_of_axiom_new(len, opeptrs, opebptr);
 	if (!ax)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* inverse-object-properties axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBInverseObjectPropertiesAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbInverseObjectPropertiesAxiom_getPtr
 (JNIEnv *env, jobject self, jobject opea, jobject opeb) {
 	CBOPE *opeaptr = (CBOPE *)get_ptr(env, opea);
 	CBOPE *opebptr = (CBOPE *)get_ptr(env, opeb);
 	CBOPAX *ax = cb_inverse_object_properties_axiom_new(opeaptr, opebptr);
 	if (!ax)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* functional-object-property axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBFunctionalObjectPropertyAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbFunctionalObjectPropertyAxiom_getPtr
 (JNIEnv *env, jobject self, jobject ope) {
 	CBOPE *opeptr = (CBOPE *)get_ptr(env, ope);
 	CBOPAX *ax = cb_functional_object_property_axiom_new(opeptr);
 	if (!ax)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* inverse-functional-object-property axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBInverseFunctionalObjectPropertyAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbInverseFunctionalObjectPropertyAxiom_getPtr
 (JNIEnv *env, jobject self, jobject ope) {
 	CBOPE *opeptr = (CBOPE *)get_ptr(env, ope);
 	CBOPAX *ax = cb_inverse_functional_object_property_axiom_new(opeptr);
 	if (!ax)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* transitive-object-property axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBTransitiveObjectPropertyAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbTransitiveObjectPropertyAxiom_getPtr
 (JNIEnv *env, jobject self, jobject ope) {
 	CBOPE *opeptr = (CBOPE *)get_ptr(env, ope);
 	CBOPAX *ax = cb_transitive_object_property_axiom_new(opeptr);
 	if (!ax) CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* methods */
@@ -111,7 +111,7 @@ jobject object_property_axiom_new(JNIEnv *env, CBOPAX *ax) {
 	return new_obj(env, cls, (intptr_t) ax);
 }
 
-JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBSubObjectPropertyOfAxiom_getSubPropertyChain
+JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CbSubObjectPropertyOfAxiom_getSubPropertyChain
   (JNIEnv *env, jobject self) {
 	int i, len;
 	jobjectArray res;
@@ -131,7 +131,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBSubObjectPrope
 	return (res);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBSubObjectPropertyOfAxiom_getSuperProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbSubObjectPropertyOfAxiom_getSuperProperty
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	CBOPE *ope = cb_sub_object_property_of_axiom_get_super_property(ax);
@@ -140,7 +140,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBSubObjectPropertyOf
 	return object_property_expression_new(env, ope);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBInverseObjectPropertiesAxiom_getFirstProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbInverseObjectPropertiesAxiom_getFirstProperty
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	CBOPE *ope = cb_inverse_object_properties_axiom_get_first_property(ax);
@@ -149,7 +149,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBInverseObjectProper
 	return object_property_expression_new(env, ope);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBInverseObjectPropertiesAxiom_getSecondProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbInverseObjectPropertiesAxiom_getSecondProperty
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	CBOPE *ope = cb_inverse_object_properties_axiom_get_second_property(ax);
@@ -158,7 +158,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBInverseObjectProper
 	return object_property_expression_new(env, ope);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBFunctionalObjectPropertyAxiom_getProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbFunctionalObjectPropertyAxiom_getProperty
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	CBOPE *ope = cb_functional_object_property_axiom_get_property(ax);
@@ -167,7 +167,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBFunctionalObjectPro
 	return object_property_expression_new(env, ope);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBInverseFunctionalObjectPropertyAxiom_getProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbInverseFunctionalObjectPropertyAxiom_getProperty
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	CBOPE *ope = cb_inverse_functional_object_property_axiom_get_property(ax);
@@ -176,7 +176,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBInverseFunctionalOb
 	return object_property_expression_new(env, ope);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBTransitiveObjectPropertyAxiom_getProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbTransitiveObjectPropertyAxiom_getProperty
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	CBOPE *ope = cb_transitive_object_property_axiom_get_property(ax);
@@ -186,7 +186,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBTransitiveObjectPro
 }
 
 /* print */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyAxiom_print
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbObjectPropertyAxiom_print
 (JNIEnv *env, jobject self) {
 	CBOPAX *ax = (CBOPAX *) get_ptr(env, self);
 	if (!cb_object_property_axiom_print(ax))

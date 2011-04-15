@@ -1,15 +1,15 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBClass.h"
-#include "org_semanticweb_cb_reasoner_CBClassExpression.h"
-#include "org_semanticweb_cb_reasoner_CBObjectIntersectionOf.h"
-#include "org_semanticweb_cb_reasoner_CBObjectSomeValuesFrom.h"
+#include "org_semanticweb_cb_reasoner_CbClass.h"
+#include "org_semanticweb_cb_reasoner_CbClassExpression.h"
+#include "org_semanticweb_cb_reasoner_CbObjectIntersectionOf.h"
+#include "org_semanticweb_cb_reasoner_CbObjectSomeValuesFrom.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassExpression_destruct
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbClassExpression_destruct
 (JNIEnv *env, jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBCE *ce = (CBCE *)(intptr_t)ptr;
 		cb_class_expression_delete(ce);
@@ -19,7 +19,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassExpression_destru
 /* constructors */
 
 /* class */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClass_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbClass_getPtr
 (JNIEnv *env, jobject self, jstring iri) {
 	jboolean icp;
 	const char *tiri = (*env)->GetStringUTFChars(env, iri, &icp);
@@ -27,11 +27,11 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClass_create
 	if (!ce)
 		CBthrow_exception(env);
 	if(icp) (*env)->ReleaseStringUTFChars(env, iri, tiri);
-	set_ptr(env, self, (intptr_t)ce);
+	return (intptr_t)ce;
 }
 
 /* object intersection of */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectIntersectionOf_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbObjectIntersectionOf_getPtr
 (JNIEnv *env, jobject self, jobjectArray cearr) {
 	jsize len = (*env)->GetArrayLength(env, cearr);
 	CBCE *ce;
@@ -45,18 +45,18 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectIntersectionOf_c
 	if (!ce)
 		CBthrow_exception(env);
 	free(ceptrs);
-	set_ptr(env, self, (intptr_t)ce);
+	return (intptr_t)ce;
 }
 
 /* object some values from */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectSomeValuesFrom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbObjectSomeValuesFrom_getPtr
 (JNIEnv *env, jobject self, jobject ope, jobject cea) {
 	CBOPE *opeptr = (CBOPE *) get_ptr(env, ope);
 	CBCE *ceaptr = (CBCE *) get_ptr(env, cea);
 	CBCE *ce = cb_object_some_values_from_new(opeptr, ceaptr);
 	if (!ce)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ce);
+	return (intptr_t)ce;
 }
 
 /* methods */
@@ -85,7 +85,7 @@ jobject class_expression_new(JNIEnv *env, CBCE *ce) {
 	return new_obj(env, cls, (intptr_t) ce);
 }
 
-JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CBClass_getIRI(JNIEnv *env,
+JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CbClass_getIRI(JNIEnv *env,
 		jobject self) {
 	CBCE *ce = (CBCE *) get_ptr(env, self);
 	char *iri = cb_class_get_iri(ce);
@@ -95,7 +95,7 @@ JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CBClass_getIRI(JNIEnv
 }
 
 /* object intersection of */
-JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBObjectIntersectionOf_getOperands(
+JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CbObjectIntersectionOf_getOperands(
 		JNIEnv *env, jobject self) {
 	int i, len;
 	jobjectArray res;
@@ -116,7 +116,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBObjectIntersec
 }
 
 /* object some values from */
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBObjectSomeValuesFrom_getProperty
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbObjectSomeValuesFrom_getProperty
  (JNIEnv *env, jobject self) {
 	CBCE *ceptr = (CBCE *) get_ptr(env, self);
 	CBOPE *ope = cb_object_some_values_from_get_property(ceptr);
@@ -125,7 +125,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBObjectSomeValuesFro
 	return object_property_expression_new(env, ope);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBObjectSomeValuesFrom_getFiller
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbObjectSomeValuesFrom_getFiller
 (JNIEnv *env, jobject self) {
 	CBCE *ceptr = (CBCE *) get_ptr(env, self);
 	CBCE *cef = cb_object_some_values_from_get_filler(ceptr);
@@ -136,7 +136,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBObjectSomeValuesFro
 
 
 /* print */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassExpression_print
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbClassExpression_print
 (JNIEnv *env, jobject self) {
 	CBCE *ce = (CBCE *) get_ptr(env, self);
 	if (!cb_class_expression_print(ce))

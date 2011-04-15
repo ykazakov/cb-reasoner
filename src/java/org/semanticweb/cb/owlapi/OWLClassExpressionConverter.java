@@ -2,10 +2,10 @@ package org.semanticweb.cb.owlapi;
 
 import java.util.List;
 
-import org.semanticweb.cb.reasoner.CBClass;
-import org.semanticweb.cb.reasoner.CBClassExpression;
-import org.semanticweb.cb.reasoner.CBObjectIntersectionOf;
-import org.semanticweb.cb.reasoner.CBObjectSomeValuesFrom;
+import org.semanticweb.cb.reasoner.CbClass;
+import org.semanticweb.cb.reasoner.CbClassExpression;
+import org.semanticweb.cb.reasoner.CbObjectIntersectionOf;
+import org.semanticweb.cb.reasoner.CbObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLClassExpressionVisitorEx;
@@ -28,7 +28,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 
 public final class OWLClassExpressionConverter implements
-		OWLClassExpressionVisitorEx<CBClassExpression> {
+		OWLClassExpressionVisitorEx<CbClassExpression> {
 	
 	private static final OWLClassExpressionConverter converter = new OWLClassExpressionConverter();
 	private OWLClassExpressionConverter() {		
@@ -39,121 +39,121 @@ public final class OWLClassExpressionConverter implements
 	}
 
 	@Override
-	public CBClass visit(OWLClass ce) {
+	public CbClass visit(OWLClass ce) {
 		if (ce.isOWLThing())
-			return CBClass.Thing;
+			return CbClass.CbOwlThing;
 		else if (ce.isOWLNothing())
-			return CBClass.Nothing;
-		else return new CBClass(ce.getIRI().toString());
+			return CbClass.CbOwlNothing;
+		else return new CbClass(ce.getIRI().toString());
 	}
 
 	@Override
-	public CBObjectIntersectionOf visit(OWLObjectIntersectionOf ce) {
+	public CbObjectIntersectionOf visit(OWLObjectIntersectionOf ce) {
 		List<OWLClassExpression> owlConjuncts = ce.getOperandsAsList();
 		int length = owlConjuncts.size();
-		CBClassExpression[] cbConjuncts = new CBClassExpression[length];
+		CbClassExpression[] cbConjuncts = new CbClassExpression[length];
 		int i = 0;
 		for (OWLClassExpression cce : owlConjuncts) {
 			cbConjuncts[i] = cce.accept(this);
 			i++;
 		}
-		return new CBObjectIntersectionOf(cbConjuncts);
+		return new CbObjectIntersectionOf(cbConjuncts);
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectUnionOf ce) {
+	public CbClassExpression visit(OWLObjectUnionOf ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectComplementOf ce) {
+	public CbClassExpression visit(OWLObjectComplementOf ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBObjectSomeValuesFrom visit(OWLObjectSomeValuesFrom ce) {
+	public CbObjectSomeValuesFrom visit(OWLObjectSomeValuesFrom ce) {
 		OWLPropertyExpressionConverter peConverter = 
 			OWLPropertyExpressionConverter.getInstance(); 
-		return new CBObjectSomeValuesFrom(ce.getProperty().accept(peConverter), 
+		return new CbObjectSomeValuesFrom(ce.getProperty().accept(peConverter), 
 				ce.getFiller().accept(this));		
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectAllValuesFrom ce) {
+	public CbClassExpression visit(OWLObjectAllValuesFrom ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectHasValue ce) {
+	public CbClassExpression visit(OWLObjectHasValue ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectMinCardinality ce) {
+	public CbClassExpression visit(OWLObjectMinCardinality ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectExactCardinality ce) {
+	public CbClassExpression visit(OWLObjectExactCardinality ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectMaxCardinality ce) {
+	public CbClassExpression visit(OWLObjectMaxCardinality ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectHasSelf ce) {
+	public CbClassExpression visit(OWLObjectHasSelf ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLObjectOneOf ce) {
+	public CbClassExpression visit(OWLObjectOneOf ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLDataSomeValuesFrom ce) {
+	public CbClassExpression visit(OWLDataSomeValuesFrom ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLDataAllValuesFrom ce) {
+	public CbClassExpression visit(OWLDataAllValuesFrom ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLDataHasValue ce) {
+	public CbClassExpression visit(OWLDataHasValue ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLDataMinCardinality ce) {
+	public CbClassExpression visit(OWLDataMinCardinality ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLDataExactCardinality ce) {
+	public CbClassExpression visit(OWLDataExactCardinality ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}
 
 	@Override
-	public CBClassExpression visit(OWLDataMaxCardinality ce) {
+	public CbClassExpression visit(OWLDataMaxCardinality ce) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(ce.getClassExpressionType().getName() + " not supported");
 	}

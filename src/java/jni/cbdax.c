@@ -1,14 +1,14 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBDeclarationAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBClassDeclarationAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBObjectPropertyDeclarationAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbDeclarationAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbClassDeclarationAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbObjectPropertyDeclarationAxiom.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBDeclarationAxiom_destruct
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbDeclarationAxiom_destruct
 (JNIEnv *env, jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBCAX *ax = (CBCAX *)(intptr_t)ptr;
 		cb_class_axiom_delete(ax);
@@ -18,7 +18,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBDeclarationAxiom_destr
 /* constructors */
 
 /* class declaration axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassDeclarationAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbClassDeclarationAxiom_getPtr
 (JNIEnv *env, jobject self, jstring iri) {
 	jboolean icp;
 	const char *tiri = (*env)->GetStringUTFChars(env, iri, &icp);
@@ -26,11 +26,11 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassDeclarationAxiom_
 	if (!ax)
 		CBthrow_exception(env);
 	if(icp) (*env)->ReleaseStringUTFChars(env, iri, tiri);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* object property declaration axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyDeclarationAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbObjectPropertyDeclarationAxiom_getPtr
 (JNIEnv *env, jobject self, jstring iri) {
 	jboolean icp;
 	const char *tiri = (*env)->GetStringUTFChars(env, iri, &icp);
@@ -38,7 +38,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyDeclarat
 	if (!ax)
 		CBthrow_exception(env);
 	if(icp) (*env)->ReleaseStringUTFChars(env, iri, tiri);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* methods */
@@ -65,7 +65,7 @@ jobject declaration_axiom_new(JNIEnv *env, CBDAX *ax) {
 }
 
 /* print */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBDeclarationAxiom_print
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbDeclarationAxiom_print
 (JNIEnv *env, jobject self) {
 	CBDAX *ax = (CBDAX *) get_ptr(env, self);
 	if (!cb_declaration_axiom_print(ax))
