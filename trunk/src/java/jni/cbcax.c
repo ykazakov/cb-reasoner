@@ -1,14 +1,14 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBClassAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBSubClassOfAxiom.h"
-#include "org_semanticweb_cb_reasoner_CBEquivalentClassesAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbClassAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbSubClassOfAxiom.h"
+#include "org_semanticweb_cb_reasoner_CbEquivalentClassesAxiom.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassAxiom_destruct
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbClassAxiom_destruct
 (JNIEnv *env, jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBCAX *ax = (CBCAX *)(intptr_t)ptr;
 		cb_class_axiom_delete(ax);
@@ -18,18 +18,18 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassAxiom_destruct
 /* constructors */
 
 /* sub-class-of axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBSubClassOfAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbSubClassOfAxiom_getPtr
 (JNIEnv *env, jobject self, jobject cea, jobject ceb) {
 	CBCE *ceaptr = (CBCE *)get_ptr(env, cea);
 	CBCE *cebptr = (CBCE *)get_ptr(env, ceb);
 	CBCAX *ax = cb_sub_class_of_axiom_new(ceaptr, cebptr);
 	if (!ax)
 		CBthrow_exception(env);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* equivalent classes axiom */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBEquivalentClassesAxiom_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbEquivalentClassesAxiom_getPtr
 (JNIEnv *env, jobject self, jobjectArray cearr) {
 	jsize len = (*env)->GetArrayLength(env, cearr);
 	CBCAX *ax;
@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBEquivalentClassesAxiom
 	if (!ax)
 		CBthrow_exception(env);
 	free(ceptrs);
-	set_ptr(env, self, (intptr_t)ax);
+	return (intptr_t)ax;
 }
 
 /* methods */
@@ -69,7 +69,7 @@ jobject class_axiom_new(JNIEnv *env, CBCAX *ax) {
 	return new_obj(env, cls, (intptr_t) ax);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBSubClassOfAxiom_getSubClass
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbSubClassOfAxiom_getSubClass
   (JNIEnv *env, jobject self) {
 	CBCAX *ax = (CBCAX *) get_ptr(env, self);
 	CBCE *ce = cb_sub_class_of_axiom_get_sub_class(ax);
@@ -78,7 +78,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBSubClassOfAxiom_get
 	return class_expression_new(env, ce);
 }
 
-JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBSubClassOfAxiom_getSuperClass
+JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CbSubClassOfAxiom_getSuperClass
   (JNIEnv *env, jobject self) {
 	CBCAX *ax = (CBCAX *) get_ptr(env, self);
 	CBCE *ce = cb_sub_class_of_axiom_get_super_class(ax);
@@ -87,7 +87,7 @@ JNIEXPORT jobject JNICALL Java_org_semanticweb_cb_reasoner_CBSubClassOfAxiom_get
 	return class_expression_new(env, ce);
 }
 
-JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBEquivalentClassesAxiom_getClassExpressions
+JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CbEquivalentClassesAxiom_getClassExpressions
   (JNIEnv *env, jobject self) {
 	int i, len;
 	jobjectArray res;
@@ -108,7 +108,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_semanticweb_cb_reasoner_CBEquivalentClas
 }
 
 /* print */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBClassAxiom_print
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbClassAxiom_print
 (JNIEnv *env, jobject self) {
 	CBCAX *ax = (CBCAX *) get_ptr(env, self);
 	if (!cb_class_axiom_print(ax))

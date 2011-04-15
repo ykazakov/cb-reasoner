@@ -1,6 +1,6 @@
 package org.semanticweb.cb.protege;
 import org.protege.editor.owl.model.inference.AbstractProtegeOWLReasonerInfo;
-import org.semanticweb.cb.owlapi.CBReasonerFactory;
+import org.semanticweb.cb.owlapi.CbReasonerFactory;
 import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.FreshEntityPolicy;
 import org.semanticweb.owlapi.reasoner.IndividualNodeSetPolicy;
@@ -12,7 +12,7 @@ import org.semanticweb.owlapi.reasoner.SimpleConfiguration;
 
 public class ProtegeReasonerFactory extends AbstractProtegeOWLReasonerInfo {
 		
-    protected final OWLReasonerFactory factory=new CBReasonerFactory(); 
+    protected final OWLReasonerFactory factory=new CbReasonerFactory(); 
     
     public BufferingMode getRecommendedBuffering() {
         return BufferingMode.BUFFERING;

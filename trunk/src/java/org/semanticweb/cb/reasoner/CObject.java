@@ -1,7 +1,13 @@
 package org.semanticweb.cb.reasoner;
 
+/**
+ * Wrapper class for objects created in C through JNI.
+ * 
+ * @author Yevgeny Kazakov
+ * 
+ */
 public abstract class CObject {
-	
+
 	static {
 		Loader.load();
 		init();
@@ -9,18 +15,15 @@ public abstract class CObject {
 
 	private static native void init();
 
-	private long ptr = 0;
+	private final long ptr;
 
-	protected CObject() {
-	}
-	
 	protected CObject(long ptr) {
 		this.ptr = ptr;
 	}
-	
+
 	protected abstract void destruct();
 
-	protected void finalize() {		
+	protected void finalize() {
 		destruct();
 	}
 

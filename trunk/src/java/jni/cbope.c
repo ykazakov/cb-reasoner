@@ -1,14 +1,14 @@
 #include <cb.h>
 #include "config.h"
-#include "org_semanticweb_cb_reasoner_CBObjectPropertyExpression.h"
-#include "org_semanticweb_cb_reasoner_CBObjectProperty.h"
-#include "org_semanticweb_cb_reasoner_CBObjectInverseOf.h"
+#include "org_semanticweb_cb_reasoner_CbObjectPropertyExpression.h"
+#include "org_semanticweb_cb_reasoner_CbObjectProperty.h"
+#include "org_semanticweb_cb_reasoner_CbObjectInverseOf.h"
 
 /* destruct */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyExpression_destruct
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbObjectPropertyExpression_destruct
 (JNIEnv *env, jobject self) {
 	long ptr = get_ptr(env, self);
-	set_ptr(env, self, 0);
+	//set_ptr(env, self, 0);
 	if (ptr != 0) {
 		CBOPE *ope = (CBOPE *)(intptr_t)ptr;
 		cb_object_property_expression_delete(ope);
@@ -18,7 +18,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyExpressi
 /* constructors */
 
 /* object property */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectProperty_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbObjectProperty_getPtr
 (JNIEnv *env, jobject self, jstring iri) {
 	jboolean icp;
 	const char *tiri = (*env)->GetStringUTFChars(env, iri, &icp);
@@ -26,11 +26,11 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectProperty_create
 	if (!ope)
 		CBthrow_exception(env);
 	if(icp) (*env)->ReleaseStringUTFChars(env, iri, tiri);
-	set_ptr(env, self, (intptr_t)ope);
+	return (intptr_t)ope;
 }
 
 /* object-inverse-of property */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectInverseOf_create
+JNIEXPORT jlong JNICALL Java_org_semanticweb_cb_reasoner_CbObjectInverseOf_getPtr
 (JNIEnv *env, jobject self, jstring iri) {
 	jboolean icp;
 	const char *tiri = (*env)->GetStringUTFChars(env, iri, &icp);
@@ -38,7 +38,7 @@ JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectInverseOf_create
 	if (!ope)
 		CBthrow_exception(env);
 	if(icp) (*env)->ReleaseStringUTFChars(env, iri, tiri);
-	set_ptr(env, self, (intptr_t)ope);
+	return (intptr_t)ope;
 }
 
 /* methods */
@@ -64,7 +64,7 @@ jobject object_property_expression_new(JNIEnv *env, CBOPE *ope) {
 	return new_obj(env, cls, (intptr_t) ope);
 }
 
-JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CBObjectProperty_getIRI
+JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CbObjectProperty_getIRI
   (JNIEnv *env, jobject self) {
 	CBOPE *ope = (CBOPE *) get_ptr(env, self);
 	char *iri = cb_object_property_get_iri(ope);
@@ -73,7 +73,7 @@ JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CBObjectProperty_getI
 	return (*env)->NewStringUTF(env, iri);
 }
 
-JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CBObjectInverseOf_getIRI
+JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CbObjectInverseOf_getIRI
   (JNIEnv *env, jobject self) {
 	CBOPE *ope = (CBOPE *) get_ptr(env, self);
 	char *iri = cb_object_inverse_of_get_iri(ope);
@@ -83,7 +83,7 @@ JNIEXPORT jstring JNICALL Java_org_semanticweb_cb_reasoner_CBObjectInverseOf_get
 }
 
 /* print */
-JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CBObjectPropertyExpression_print
+JNIEXPORT void JNICALL Java_org_semanticweb_cb_reasoner_CbObjectPropertyExpression_print
 (JNIEnv *env, jobject self) {
 	CBOPE *ope = (CBOPE *) get_ptr(env, self);
 	if (!cb_object_property_expression_print(ope))

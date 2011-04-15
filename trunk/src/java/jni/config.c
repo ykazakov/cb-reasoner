@@ -28,10 +28,6 @@ intptr_t get_ptr(JNIEnv *env, jobject obj) {
 	return (intptr_t) (*env)->GetLongField(env, obj, fid_ptr);
 }
 
-void set_ptr(JNIEnv *env, jobject obj, long ptr) {
-	(*env)->SetLongField(env, obj, fid_ptr, ptr);
-}
-
 jobject new_obj(JNIEnv *env, jclass cls, long ptr) {
 	return (*env)->NewObject(env, cls, mid_init, ptr);
 }

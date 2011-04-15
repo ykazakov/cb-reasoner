@@ -2,17 +2,17 @@ package org.semanticweb.cb.owlapi;
 
 import java.util.List;
 
-import org.semanticweb.cb.reasoner.CBAxiom;
-import org.semanticweb.cb.reasoner.CBClassDeclarationAxiom;
-import org.semanticweb.cb.reasoner.CBClassExpression;
-import org.semanticweb.cb.reasoner.CBEquivalentClassesAxiom;
-import org.semanticweb.cb.reasoner.CBFunctionalObjectPropertyAxiom;
-import org.semanticweb.cb.reasoner.CBInverseFunctionalObjectPropertyAxiom;
-import org.semanticweb.cb.reasoner.CBInverseObjectPropertiesAxiom;
-import org.semanticweb.cb.reasoner.CBObjectPropertyDeclarationAxiom;
-import org.semanticweb.cb.reasoner.CBSubClassOfAxiom;
-import org.semanticweb.cb.reasoner.CBSubObjectPropertyOfAxiom;
-import org.semanticweb.cb.reasoner.CBTransitiveObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbAxiom;
+import org.semanticweb.cb.reasoner.CbClassDeclarationAxiom;
+import org.semanticweb.cb.reasoner.CbClassExpression;
+import org.semanticweb.cb.reasoner.CbEquivalentClassesAxiom;
+import org.semanticweb.cb.reasoner.CbFunctionalObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbInverseFunctionalObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbInverseObjectPropertiesAxiom;
+import org.semanticweb.cb.reasoner.CbObjectPropertyDeclarationAxiom;
+import org.semanticweb.cb.reasoner.CbSubClassOfAxiom;
+import org.semanticweb.cb.reasoner.CbSubObjectPropertyOfAxiom;
+import org.semanticweb.cb.reasoner.CbTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationPropertyRangeAxiom;
@@ -56,7 +56,7 @@ import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.SWRLRule;
 
-public final class OWLAxiomConverter implements OWLAxiomVisitorEx<CBAxiom> {
+public final class OWLAxiomConverter implements OWLAxiomVisitorEx<CbAxiom> {
 	
 	private static final OWLAxiomConverter converter = new OWLAxiomConverter();
 	private OWLAxiomConverter() {		
@@ -67,256 +67,256 @@ public final class OWLAxiomConverter implements OWLAxiomVisitorEx<CBAxiom> {
 	}
 
 	@Override
-	public CBAxiom visit(OWLSubAnnotationPropertyOfAxiom axiom) {
+	public CbAxiom visit(OWLSubAnnotationPropertyOfAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported"); 		
 	}
 
 	@Override
-	public CBAxiom visit(OWLAnnotationPropertyDomainAxiom axiom) {
+	public CbAxiom visit(OWLAnnotationPropertyDomainAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLAnnotationPropertyRangeAxiom axiom) {
+	public CbAxiom visit(OWLAnnotationPropertyRangeAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBSubClassOfAxiom visit(OWLSubClassOfAxiom axiom) {
+	public CbSubClassOfAxiom visit(OWLSubClassOfAxiom axiom) {
 		OWLClassExpressionConverter ceConverter = OWLClassExpressionConverter.getInstance(); 
-		return new CBSubClassOfAxiom(axiom.getSubClass().accept(ceConverter), 
+		return new CbSubClassOfAxiom(axiom.getSubClass().accept(ceConverter), 
 				axiom.getSuperClass().accept(ceConverter));		
 	}
 
 	@Override
-	public CBAxiom visit(OWLNegativeObjectPropertyAssertionAxiom axiom) {
+	public CbAxiom visit(OWLNegativeObjectPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLAsymmetricObjectPropertyAxiom axiom) {
+	public CbAxiom visit(OWLAsymmetricObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLReflexiveObjectPropertyAxiom axiom) {
+	public CbAxiom visit(OWLReflexiveObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDisjointClassesAxiom axiom) {
+	public CbAxiom visit(OWLDisjointClassesAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDataPropertyDomainAxiom axiom) {
+	public CbAxiom visit(OWLDataPropertyDomainAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLObjectPropertyDomainAxiom axiom) {
+	public CbAxiom visit(OWLObjectPropertyDomainAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLEquivalentObjectPropertiesAxiom axiom) {
+	public CbAxiom visit(OWLEquivalentObjectPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLNegativeDataPropertyAssertionAxiom axiom) {
+	public CbAxiom visit(OWLNegativeDataPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDifferentIndividualsAxiom axiom) {
+	public CbAxiom visit(OWLDifferentIndividualsAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDisjointDataPropertiesAxiom axiom) {
+	public CbAxiom visit(OWLDisjointDataPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDisjointObjectPropertiesAxiom axiom) {
+	public CbAxiom visit(OWLDisjointObjectPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLObjectPropertyRangeAxiom axiom) {
+	public CbAxiom visit(OWLObjectPropertyRangeAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLObjectPropertyAssertionAxiom axiom) {
+	public CbAxiom visit(OWLObjectPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBFunctionalObjectPropertyAxiom visit(OWLFunctionalObjectPropertyAxiom axiom) {
+	public CbFunctionalObjectPropertyAxiom visit(OWLFunctionalObjectPropertyAxiom axiom) {
 		OWLPropertyExpressionConverter peConverter = 
 			OWLPropertyExpressionConverter.getInstance(); 		
-		return new CBFunctionalObjectPropertyAxiom(axiom.getProperty().accept(peConverter));
+		return new CbFunctionalObjectPropertyAxiom(axiom.getProperty().accept(peConverter));
 	}
 
 	@Override
-	public CBSubObjectPropertyOfAxiom visit(OWLSubObjectPropertyOfAxiom axiom) {		
+	public CbSubObjectPropertyOfAxiom visit(OWLSubObjectPropertyOfAxiom axiom) {		
 		OWLPropertyExpressionConverter peConverter = 
 			OWLPropertyExpressionConverter.getInstance();
-		return new CBSubObjectPropertyOfAxiom(axiom.getSubProperty().accept(peConverter), 
+		return new CbSubObjectPropertyOfAxiom(axiom.getSubProperty().accept(peConverter), 
 				axiom.getSuperProperty().accept(peConverter));
 	}
 
 	@Override
-	public CBAxiom visit(OWLDisjointUnionAxiom axiom) {
+	public CbAxiom visit(OWLDisjointUnionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDeclarationAxiom axiom) {
+	public CbAxiom visit(OWLDeclarationAxiom axiom) {
 		OWLEntity entity = axiom.getEntity();
 		if (entity.isOWLClass())
-			return new CBClassDeclarationAxiom(entity.getIRI().toString());
+			return new CbClassDeclarationAxiom(entity.getIRI().toString());
 		else if (entity.isOWLObjectProperty())
-			return new CBObjectPropertyDeclarationAxiom(entity.getIRI().toString());
+			return new CbObjectPropertyDeclarationAxiom(entity.getIRI().toString());
 		else throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLAnnotationAssertionAxiom axiom) {
+	public CbAxiom visit(OWLAnnotationAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLSymmetricObjectPropertyAxiom axiom) {
+	public CbAxiom visit(OWLSymmetricObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDataPropertyRangeAxiom axiom) {
+	public CbAxiom visit(OWLDataPropertyRangeAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLFunctionalDataPropertyAxiom axiom) {
+	public CbAxiom visit(OWLFunctionalDataPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLEquivalentDataPropertiesAxiom axiom) {
+	public CbAxiom visit(OWLEquivalentDataPropertiesAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLClassAssertionAxiom axiom) {
+	public CbAxiom visit(OWLClassAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBEquivalentClassesAxiom visit(OWLEquivalentClassesAxiom axiom) {
+	public CbEquivalentClassesAxiom visit(OWLEquivalentClassesAxiom axiom) {
 		OWLClassExpressionConverter ceConverter = 
 			OWLClassExpressionConverter.getInstance();
 		List<OWLClassExpression> operands=axiom.getClassExpressionsAsList();
 		int length=operands.size();
-		CBClassExpression[] cbObjects=new CBClassExpression[length];
+		CbClassExpression[] cbObjects=new CbClassExpression[length];
 		int i = 0;
 		for (OWLClassExpression ce : operands) {
 			cbObjects[i] = ce.accept(ceConverter);
 			i++;
 		}
-		return new CBEquivalentClassesAxiom(cbObjects);
+		return new CbEquivalentClassesAxiom(cbObjects);
 	}
 
 	@Override
-	public CBAxiom visit(OWLDataPropertyAssertionAxiom axiom) {
+	public CbAxiom visit(OWLDataPropertyAssertionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBTransitiveObjectPropertyAxiom visit(OWLTransitiveObjectPropertyAxiom axiom) {
+	public CbTransitiveObjectPropertyAxiom visit(OWLTransitiveObjectPropertyAxiom axiom) {
 		OWLPropertyExpressionConverter peConverter = 
 			OWLPropertyExpressionConverter.getInstance(); 		
-		return new CBTransitiveObjectPropertyAxiom(axiom.getProperty().accept(peConverter));		
+		return new CbTransitiveObjectPropertyAxiom(axiom.getProperty().accept(peConverter));		
 	}
 
 	@Override
-	public CBAxiom visit(OWLIrreflexiveObjectPropertyAxiom axiom) {
+	public CbAxiom visit(OWLIrreflexiveObjectPropertyAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLSubDataPropertyOfAxiom axiom) {
+	public CbAxiom visit(OWLSubDataPropertyOfAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBInverseFunctionalObjectPropertyAxiom visit(OWLInverseFunctionalObjectPropertyAxiom axiom) {
+	public CbInverseFunctionalObjectPropertyAxiom visit(OWLInverseFunctionalObjectPropertyAxiom axiom) {
 		OWLPropertyExpressionConverter peConverter = 
 			OWLPropertyExpressionConverter.getInstance(); 		
-		return new CBInverseFunctionalObjectPropertyAxiom(axiom.getProperty().accept(peConverter));		
+		return new CbInverseFunctionalObjectPropertyAxiom(axiom.getProperty().accept(peConverter));		
 	}
 
 	@Override
-	public CBAxiom visit(OWLSameIndividualAxiom axiom) {
+	public CbAxiom visit(OWLSameIndividualAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLSubPropertyChainOfAxiom axiom) {
+	public CbAxiom visit(OWLSubPropertyChainOfAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBInverseObjectPropertiesAxiom visit(OWLInverseObjectPropertiesAxiom axiom) {
+	public CbInverseObjectPropertiesAxiom visit(OWLInverseObjectPropertiesAxiom axiom) {
 		OWLPropertyExpressionConverter peConverter = 
 			OWLPropertyExpressionConverter.getInstance();				
-		return new CBInverseObjectPropertiesAxiom(axiom.getFirstProperty().accept(peConverter),
+		return new CbInverseObjectPropertiesAxiom(axiom.getFirstProperty().accept(peConverter),
 				axiom.getSecondProperty().accept(peConverter));		
 	}
 
 	@Override
-	public CBAxiom visit(OWLHasKeyAxiom axiom) {
+	public CbAxiom visit(OWLHasKeyAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(OWLDatatypeDefinitionAxiom axiom) {
+	public CbAxiom visit(OWLDatatypeDefinitionAxiom axiom) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(axiom.getAxiomType().getName() + " not supported");
 	}
 
 	@Override
-	public CBAxiom visit(SWRLRule rule) {
+	public CbAxiom visit(SWRLRule rule) {
 		// TODO Auto-generated method stub
 		throw new ConverterException(rule.getAxiomType().getName() + " not supported");
 	}

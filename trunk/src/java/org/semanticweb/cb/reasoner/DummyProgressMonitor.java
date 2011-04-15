@@ -1,5 +1,12 @@
 package org.semanticweb.cb.reasoner;
 
+/**
+ * A progress monitor that does nothing.
+ * 
+ * 
+ * @author Yevgeny Kazakov
+ * 
+ */
 public class DummyProgressMonitor implements ProgressMonitor {
 
 	@Override
@@ -7,7 +14,7 @@ public class DummyProgressMonitor implements ProgressMonitor {
 	}
 
 	@Override
-	public void report(int state, int max) {
+	public void report(int state, int maxState) {
 	}
 
 	@Override

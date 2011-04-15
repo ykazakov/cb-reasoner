@@ -993,7 +993,7 @@ let rec process_t t pt_lst index =
 
 (**======================= the main function =================================*)
 
-let compute ?(message = "Saturating ontology...") pt_lst ont =
+let compute ?(message = "Computing consequences...") pt_lst ont =
 	let max = O.count_Class ont in	
 	List.iter (fun pt -> pt.PT.start message max) pt_lst;
 	let t = t_create (O.count_Class ont) in

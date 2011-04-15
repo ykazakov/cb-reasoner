@@ -1,2 +1,3 @@
+<*.byte>: use_unix, use_camlp4, use_dynlink
 <*.native>: use_unix
 <owl.*>: use_typeext

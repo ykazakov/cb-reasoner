@@ -2,22 +2,22 @@ package org.semanticweb.cb.owlapi;
 
 import java.util.List;
 
-import org.semanticweb.cb.reasoner.CBAxiom;
-import org.semanticweb.cb.reasoner.CBClass;
-import org.semanticweb.cb.reasoner.CBClassExpression;
-import org.semanticweb.cb.reasoner.CBEquivalentClassesAxiom;
-import org.semanticweb.cb.reasoner.CBFunctionalObjectPropertyAxiom;
-import org.semanticweb.cb.reasoner.CBInverseFunctionalObjectPropertyAxiom;
-import org.semanticweb.cb.reasoner.CBInverseObjectPropertiesAxiom;
-import org.semanticweb.cb.reasoner.CBObjectIntersectionOf;
-import org.semanticweb.cb.reasoner.CBObjectInverseOf;
-import org.semanticweb.cb.reasoner.CBObjectProperty;
-import org.semanticweb.cb.reasoner.CBObjectPropertyExpression;
-import org.semanticweb.cb.reasoner.CBObjectSomeValuesFrom;
-import org.semanticweb.cb.reasoner.CBOntology;
-import org.semanticweb.cb.reasoner.CBSubClassOfAxiom;
-import org.semanticweb.cb.reasoner.CBSubObjectPropertyOfAxiom;
-import org.semanticweb.cb.reasoner.CBTransitiveObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbAxiom;
+import org.semanticweb.cb.reasoner.CbClass;
+import org.semanticweb.cb.reasoner.CbClassExpression;
+import org.semanticweb.cb.reasoner.CbEquivalentClassesAxiom;
+import org.semanticweb.cb.reasoner.CbFunctionalObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbInverseFunctionalObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbInverseObjectPropertiesAxiom;
+import org.semanticweb.cb.reasoner.CbObjectIntersectionOf;
+import org.semanticweb.cb.reasoner.CbObjectInverseOf;
+import org.semanticweb.cb.reasoner.CbObjectProperty;
+import org.semanticweb.cb.reasoner.CbObjectPropertyExpression;
+import org.semanticweb.cb.reasoner.CbObjectSomeValuesFrom;
+import org.semanticweb.cb.reasoner.CbOntology;
+import org.semanticweb.cb.reasoner.CbSubClassOfAxiom;
+import org.semanticweb.cb.reasoner.CbSubObjectPropertyOfAxiom;
+import org.semanticweb.cb.reasoner.CbTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -108,17 +108,17 @@ import org.semanticweb.owlapi.model.SWRLVariable;
 
 public class LoaderVisitor implements OWLObjectVisitorEx<Object> {	
 	
-	protected final CBReasoner reasoner;
+	protected final CbReasoner reasoner;
 	
-	public LoaderVisitor(CBReasoner reasoner) {
+	public LoaderVisitor(CbReasoner reasoner) {
 		this.reasoner=reasoner;
 	} 
 			
 	@Override
 	public Object visit(OWLSubClassOfAxiom axiom) {
-		CBClassExpression cbSubClassPointer=(CBClassExpression)axiom.getSubClass().accept(this);
-		CBClassExpression cbSuperClassPointer=(CBClassExpression)axiom.getSuperClass().accept(this);
-		return new CBSubClassOfAxiom(cbSubClassPointer, cbSuperClassPointer);
+		CbClassExpression cbSubClassPointer=(CbClassExpression)axiom.getSubClass().accept(this);
+		CbClassExpression cbSuperClassPointer=(CbClassExpression)axiom.getSuperClass().accept(this);
+		return new CbSubClassOfAxiom(cbSubClassPointer, cbSuperClassPointer);
 	}
 	
 	@Override
@@ -201,15 +201,15 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 
 	@Override
 	public Object visit(OWLFunctionalObjectPropertyAxiom axiom) {
-		CBObjectPropertyExpression ope=(CBObjectPropertyExpression)axiom.getProperty().accept(this);
-		return new CBFunctionalObjectPropertyAxiom(ope);
+		CbObjectPropertyExpression ope=(CbObjectPropertyExpression)axiom.getProperty().accept(this);
+		return new CbFunctionalObjectPropertyAxiom(ope);
 	}
 
 	@Override
 	public Object visit(OWLSubObjectPropertyOfAxiom axiom) {
-		CBObjectPropertyExpression sub=(CBObjectPropertyExpression)axiom.getSubProperty().accept(this);
-		CBObjectPropertyExpression sup=(CBObjectPropertyExpression)axiom.getSuperProperty().accept(this);
-		return new CBSubObjectPropertyOfAxiom(sub, sup);
+		CbObjectPropertyExpression sub=(CbObjectPropertyExpression)axiom.getSubProperty().accept(this);
+		CbObjectPropertyExpression sup=(CbObjectPropertyExpression)axiom.getSuperProperty().accept(this);
+		return new CbSubObjectPropertyOfAxiom(sub, sup);
 	}
 
 	@Override
@@ -264,11 +264,11 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 	public Object visit(OWLEquivalentClassesAxiom axiom) {
 		List<OWLClassExpression> operands=axiom.getClassExpressionsAsList();
 		int length=operands.size();
-		CBClassExpression[] cbObjects=new CBClassExpression[length];
+		CbClassExpression[] cbObjects=new CbClassExpression[length];
 		for (int i=0; i<length; i++) {
-			cbObjects[i]=(CBClassExpression)operands.get(i).accept(this);
+			cbObjects[i]=(CbClassExpression)operands.get(i).accept(this);
 		}
-		return new CBEquivalentClassesAxiom(cbObjects);
+		return new CbEquivalentClassesAxiom(cbObjects);
 	}
 
 	@Override
@@ -279,8 +279,8 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 
 	@Override
 	public Object visit(OWLTransitiveObjectPropertyAxiom axiom) {
-		CBObjectPropertyExpression ope=(CBObjectPropertyExpression)axiom.getProperty().accept(this);
-		return new CBTransitiveObjectPropertyAxiom(ope);
+		CbObjectPropertyExpression ope=(CbObjectPropertyExpression)axiom.getProperty().accept(this);
+		return new CbTransitiveObjectPropertyAxiom(ope);
 	}
 
 	@Override
@@ -297,8 +297,8 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 
 	@Override
 	public Object visit(OWLInverseFunctionalObjectPropertyAxiom axiom) {
-		CBObjectPropertyExpression ope=(CBObjectPropertyExpression)axiom.getProperty().accept(this);
-		return new CBInverseFunctionalObjectPropertyAxiom(ope);
+		CbObjectPropertyExpression ope=(CbObjectPropertyExpression)axiom.getProperty().accept(this);
+		return new CbInverseFunctionalObjectPropertyAxiom(ope);
 	}
 
 	@Override
@@ -315,9 +315,9 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 
 	@Override
 	public Object visit(OWLInverseObjectPropertiesAxiom axiom) {
-		CBObjectPropertyExpression opea = (CBObjectPropertyExpression)axiom.getFirstProperty().accept(this);
-		CBObjectPropertyExpression opeb = (CBObjectPropertyExpression)axiom.getSecondProperty().accept(this);
-		return new CBInverseObjectPropertiesAxiom(opea,opeb);
+		CbObjectPropertyExpression opea = (CbObjectPropertyExpression)axiom.getFirstProperty().accept(this);
+		CbObjectPropertyExpression opeb = (CbObjectPropertyExpression)axiom.getSecondProperty().accept(this);
+		return new CbInverseObjectPropertiesAxiom(opea,opeb);
 	}
 
 	@Override
@@ -359,18 +359,18 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 	@Override
 	public Object visit(OWLClass ce) {
 		String iri=ce.getIRI().toString();
-		return new CBClass(iri);
+		return new CbClass(iri);
 	}
 
 	@Override
 	public Object visit(OWLObjectIntersectionOf ce) {
 		List<OWLClassExpression> operands=ce.getOperandsAsList();
 		int length=operands.size();
-		CBClassExpression[] cbObjects=new CBClassExpression[length];
+		CbClassExpression[] cbObjects=new CbClassExpression[length];
 		for (int i=0; i<length; i++) {
-			cbObjects[i]=(CBClassExpression)operands.get(i).accept(this);
+			cbObjects[i]=(CbClassExpression)operands.get(i).accept(this);
 		}
-		return new CBObjectIntersectionOf(cbObjects);
+		return new CbObjectIntersectionOf(cbObjects);
 	}
 
 	@Override
@@ -387,9 +387,9 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 
 	@Override
 	public Object visit(OWLObjectSomeValuesFrom ce) {
-		CBObjectPropertyExpression ope = (CBObjectPropertyExpression)ce.getProperty().accept(this);
-		CBClassExpression cce = (CBClassExpression)ce.getFiller().accept(this);
-		return new CBObjectSomeValuesFrom(ope, cce);
+		CbObjectPropertyExpression ope = (CbObjectPropertyExpression)ce.getProperty().accept(this);
+		CbClassExpression cce = (CbClassExpression)ce.getFiller().accept(this);
+		return new CbObjectSomeValuesFrom(ope, cce);
 	}
 
 	@Override
@@ -521,13 +521,13 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 	@Override
 	public Object visit(OWLObjectProperty op) {
 		String iri=op.getIRI().toString();
-		return new CBObjectProperty(iri);
+		return new CbObjectProperty(iri);
 	}
 
 	@Override
 	public Object visit(OWLObjectInverseOf op) {
 		String iri=op.getNamedProperty().getIRI().toString();
-		return new CBObjectInverseOf(iri);
+		return new CbObjectInverseOf(iri);
 	}
 
 	@Override
@@ -628,12 +628,12 @@ public class LoaderVisitor implements OWLObjectVisitorEx<Object> {
 
 	@Override
 	public Object visit(OWLOntology ontology) {
-		CBOntology cbOntology=new CBOntology();		
+		CbOntology cbOntology=new CbOntology();		
 		int numberOfAxioms=ontology.getLogicalAxioms().size();
 		int currentAxiom=0;
 		for (OWLAxiom axiom : ontology.getLogicalAxioms()) {
 			currentAxiom++;
-			cbOntology.add((CBAxiom)axiom.accept(this));			
+			cbOntology.add((CbAxiom)axiom.accept(this));			
 			if (reasoner.interrupted) break;
 			reasoner.internalProgressMonitor.report(currentAxiom, numberOfAxioms);
 			reasoner.externalProgressMonitor.report(currentAxiom, numberOfAxioms);

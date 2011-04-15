@@ -3,23 +3,23 @@ package org.semanticweb.cb.owlapi;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.semanticweb.cb.reasoner.CBAxiom;
-import org.semanticweb.cb.reasoner.CBClass;
-import org.semanticweb.cb.reasoner.CBClassExpression;
-import org.semanticweb.cb.reasoner.CBClassNode;
-import org.semanticweb.cb.reasoner.CBClassTaxonomyNode;
-import org.semanticweb.cb.reasoner.CBEquivalentClassesAxiom;
-import org.semanticweb.cb.reasoner.CBFunctionalObjectPropertyAxiom;
-import org.semanticweb.cb.reasoner.CBInverseFunctionalObjectPropertyAxiom;
-import org.semanticweb.cb.reasoner.CBObjectIntersectionOf;
-import org.semanticweb.cb.reasoner.CBObjectInverseOf;
-import org.semanticweb.cb.reasoner.CBObjectProperty;
-import org.semanticweb.cb.reasoner.CBObjectPropertyExpression;
-import org.semanticweb.cb.reasoner.CBObjectSomeValuesFrom;
-import org.semanticweb.cb.reasoner.CBOntology;
-import org.semanticweb.cb.reasoner.CBSubClassOfAxiom;
-import org.semanticweb.cb.reasoner.CBSubObjectPropertyOfAxiom;
-import org.semanticweb.cb.reasoner.CBTransitiveObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbAxiom;
+import org.semanticweb.cb.reasoner.CbClass;
+import org.semanticweb.cb.reasoner.CbClassExpression;
+import org.semanticweb.cb.reasoner.CbClassNode;
+import org.semanticweb.cb.reasoner.CbClassTaxonomyNode;
+import org.semanticweb.cb.reasoner.CbEquivalentClassesAxiom;
+import org.semanticweb.cb.reasoner.CbFunctionalObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbInverseFunctionalObjectPropertyAxiom;
+import org.semanticweb.cb.reasoner.CbObjectIntersectionOf;
+import org.semanticweb.cb.reasoner.CbObjectInverseOf;
+import org.semanticweb.cb.reasoner.CbObjectProperty;
+import org.semanticweb.cb.reasoner.CbObjectPropertyExpression;
+import org.semanticweb.cb.reasoner.CbObjectSomeValuesFrom;
+import org.semanticweb.cb.reasoner.CbOntology;
+import org.semanticweb.cb.reasoner.CbSubClassOfAxiom;
+import org.semanticweb.cb.reasoner.CbSubObjectPropertyOfAxiom;
+import org.semanticweb.cb.reasoner.CbTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -43,78 +43,78 @@ public abstract class Converter {
 	
 	/* OWL to CB */
 	
-	public static CBClass convert(OWLClass cls) {
+	public static CbClass convert(OWLClass cls) {
 		OWLClassExpressionConverter converter = OWLClassExpressionConverter.getInstance();
 		return converter.visit(cls);		
 	}
 	
-	public static CBObjectIntersectionOf convert(OWLObjectIntersectionOf ce) {
+	public static CbObjectIntersectionOf convert(OWLObjectIntersectionOf ce) {
 		OWLClassExpressionConverter converter = OWLClassExpressionConverter.getInstance();
 		return converter.visit(ce);		
 	}
 	
-	public static CBObjectSomeValuesFrom convert(OWLObjectSomeValuesFrom ce) {
+	public static CbObjectSomeValuesFrom convert(OWLObjectSomeValuesFrom ce) {
 		OWLClassExpressionConverter converter = OWLClassExpressionConverter.getInstance();
 		return converter.visit(ce);		
 	}
 	
-	public static CBClassExpression convert(OWLClassExpression ce) {
+	public static CbClassExpression convert(OWLClassExpression ce) {
 		OWLClassExpressionConverter converter = OWLClassExpressionConverter.getInstance();
 		return ce.accept(converter);
 	}
 	
-	public static CBObjectProperty convert(OWLObjectProperty op) {
+	public static CbObjectProperty convert(OWLObjectProperty op) {
 		OWLPropertyExpressionConverter converter = OWLPropertyExpressionConverter.getInstance();
 		return converter.visit(op);		
 	}
 	
-	public static CBObjectInverseOf convert(OWLObjectInverseOf op) {
+	public static CbObjectInverseOf convert(OWLObjectInverseOf op) {
 		OWLPropertyExpressionConverter converter = OWLPropertyExpressionConverter.getInstance();
 		return converter.visit(op);		
 	}
 	
-	public static CBObjectPropertyExpression convert(OWLObjectPropertyExpression pe) {
+	public static CbObjectPropertyExpression convert(OWLObjectPropertyExpression pe) {
 		OWLPropertyExpressionConverter converter = OWLPropertyExpressionConverter.getInstance();
 		return pe.accept(converter);
 	}
 	
-	public static CBEquivalentClassesAxiom convert(OWLEquivalentClassesAxiom ax) {
+	public static CbEquivalentClassesAxiom convert(OWLEquivalentClassesAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return converter.visit(ax);
 	}
 	
-	public static CBFunctionalObjectPropertyAxiom convert(OWLFunctionalObjectPropertyAxiom ax) {
+	public static CbFunctionalObjectPropertyAxiom convert(OWLFunctionalObjectPropertyAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return converter.visit(ax);
 	}
 	
-	public static CBInverseFunctionalObjectPropertyAxiom convert(OWLInverseFunctionalObjectPropertyAxiom ax) {
+	public static CbInverseFunctionalObjectPropertyAxiom convert(OWLInverseFunctionalObjectPropertyAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return converter.visit(ax);
 	}
 	
-	public static CBSubClassOfAxiom convert(OWLSubClassOfAxiom ax) {
+	public static CbSubClassOfAxiom convert(OWLSubClassOfAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return converter.visit(ax);
 	}
 	
-	public static CBSubObjectPropertyOfAxiom convert(OWLSubObjectPropertyOfAxiom ax) {
+	public static CbSubObjectPropertyOfAxiom convert(OWLSubObjectPropertyOfAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return converter.visit(ax);
 	}
 	
-	public static CBTransitiveObjectPropertyAxiom convert(OWLTransitiveObjectPropertyAxiom ax) {
+	public static CbTransitiveObjectPropertyAxiom convert(OWLTransitiveObjectPropertyAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return converter.visit(ax);
 	}
 	
-	public static CBAxiom convert(OWLAxiom ax) {
+	public static CbAxiom convert(OWLAxiom ax) {
 		OWLAxiomConverter converter = OWLAxiomConverter.getInstance();
 		return ax.accept(converter);
 	}
 	
-	public static CBOntology convert(OWLOntology ont) {
-		CBOntology cbOntology = new CBOntology();		
+	public static CbOntology convert(OWLOntology ont) {
+		CbOntology cbOntology = new CbOntology();		
 		for (OWLAxiom ax : ont.getLogicalAxioms()) {
 			    try {
 				cbOntology.add(convert(ax));
@@ -127,37 +127,37 @@ public abstract class Converter {
 	
 	/* CB to OWL */
 	
-	public static OWLClass convert(CBClass cls) {
-		CBClassExpressionConverter converter = CBClassExpressionConverter.getInstance();
+	public static OWLClass convert(CbClass cls) {
+		CbClassExpressionConverter converter = CbClassExpressionConverter.getInstance();
 		return converter.visit(cls);		
 	}
 	
-	public static OWLObjectIntersectionOf convert(CBObjectIntersectionOf ce) {
-		CBClassExpressionConverter converter = CBClassExpressionConverter.getInstance();
+	public static OWLObjectIntersectionOf convert(CbObjectIntersectionOf ce) {
+		CbClassExpressionConverter converter = CbClassExpressionConverter.getInstance();
 		return converter.visit(ce);		
 	}
 	
-	public static OWLObjectSomeValuesFrom convert(CBObjectSomeValuesFrom ce) {
-		CBClassExpressionConverter converter = CBClassExpressionConverter.getInstance();
+	public static OWLObjectSomeValuesFrom convert(CbObjectSomeValuesFrom ce) {
+		CbClassExpressionConverter converter = CbClassExpressionConverter.getInstance();
 		return converter.visit(ce);		
 	}
 	
-	public static OWLClassExpression convert(CBClassExpression ce) {
-		CBClassExpressionConverter converter = CBClassExpressionConverter.getInstance();
+	public static OWLClassExpression convert(CbClassExpression ce) {
+		CbClassExpressionConverter converter = CbClassExpressionConverter.getInstance();
 		return ce.accept(converter);
 	}
 	
-	public static OWLClassNode convert(CBClassNode node) {
+	public static OWLClassNode convert(CbClassNode node) {
 		Set<OWLClass> owlClasses = new HashSet<OWLClass>();
-		for (CBClass cls : node.getCBClasses()) {
+		for (CbClass cls : node.getClasses()) {
 			owlClasses.add(convert(cls));
 		}
 		return new OWLClassNode(owlClasses);
 	}
 	
-	public static OWLClassNodeSet convert(CBClassTaxonomyNode[] nodes) {
+	public static OWLClassNodeSet convert(CbClassTaxonomyNode[] nodes) {
 		Set<Node<OWLClass>> owlNodes = new HashSet<Node<OWLClass>>();
-		for (CBClassTaxonomyNode node : nodes) {
+		for (CbClassTaxonomyNode node : nodes) {
 			owlNodes.add(convert(node));					
 		}
 		return new OWLClassNodeSet(owlNodes);

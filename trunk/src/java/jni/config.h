@@ -2,7 +2,6 @@
 #include <stdint.h>
 
 intptr_t get_ptr(JNIEnv *env, jobject obj);
-void set_ptr(JNIEnv *env, jobject obj, long ptr);
 jobject new_obj(JNIEnv *env, jclass cls, long ptr);
 
 #define CBthrow_exception(env) \
@@ -11,36 +10,36 @@ jobject new_obj(JNIEnv *env, jclass cls, long ptr);
 
 #define CBPREFIX 									"org/semanticweb/cb/reasoner/"
 
-#define CLSCBObject									CBPREFIX "CBObject"
+#define CLSCBObject									CBPREFIX "CbObject"
 
-#define CLSCBClassExpression						CBPREFIX "CBClassExpression"
-#define CLSCBClass									CBPREFIX "CBClass"
-#define CLSCBObjectIntersectionOf					CBPREFIX "CBObjectIntersectionOf"
-#define CLSCBObjectSomeValuesFrom					CBPREFIX "CBObjectSomeValuesFrom"
+#define CLSCBClassExpression						CBPREFIX "CbClassExpression"
+#define CLSCBClass									CBPREFIX "CbClass"
+#define CLSCBObjectIntersectionOf					CBPREFIX "CbObjectIntersectionOf"
+#define CLSCBObjectSomeValuesFrom					CBPREFIX "CbObjectSomeValuesFrom"
 
-#define CLSCBObjectPropertyExpression				CBPREFIX "CBObjectPropertyExpression"
-#define CLSCBObjectProperty							CBPREFIX "CBObjectProperty"
-#define CLSCBObjectInverseOf						CBPREFIX "CBObjectInverseOf"
+#define CLSCBObjectPropertyExpression				CBPREFIX "CbObjectPropertyExpression"
+#define CLSCBObjectProperty							CBPREFIX "CbObjectProperty"
+#define CLSCBObjectInverseOf						CBPREFIX "CbObjectInverseOf"
 
-#define CLSCBDeclarationAxiom						CBPREFIX "CBDeclarationAxiom"
-#define CLSCBClassDeclarationAxiom					CBPREFIX "CBClassDeclarationAxiom"
-#define CLSCBObjectPropertyDeclarationAxiom			CBPREFIX "CBObjectPropertyDeclarationAxiom"
+#define CLSCBDeclarationAxiom						CBPREFIX "CbDeclarationAxiom"
+#define CLSCBClassDeclarationAxiom					CBPREFIX "CbClassDeclarationAxiom"
+#define CLSCBObjectPropertyDeclarationAxiom			CBPREFIX "CbObjectPropertyDeclarationAxiom"
 
-#define CLSCBClassAxiom								CBPREFIX "CBClassAxiom"
-#define CLSCBEquivalentClassesAxiom					CBPREFIX "CBEquivalentClassesAxiom"
-#define CLSCBSubClassOfAxiom						CBPREFIX "CBSubClassOfAxiom"
+#define CLSCBClassAxiom								CBPREFIX "CbClassAxiom"
+#define CLSCBEquivalentClassesAxiom					CBPREFIX "CbEquivalentClassesAxiom"
+#define CLSCBSubClassOfAxiom						CBPREFIX "CbSubClassOfAxiom"
 
-#define CLSCBObjectPropertyAxiom					CBPREFIX "CBObjectPropertyAxiom"
-#define CLSCBFunctionalObjectPropertyAxiom			CBPREFIX "CBFunctionalObjectPropertyAxiom"
-#define CLSCBInverseFunctionalObjectPropertyAxiom	CBPREFIX "CBInverseFunctionalObjectPropertyAxiom"
-#define CLSCBInverseObjectPropertiesAxiom			CBPREFIX "CBInverseObjectPropertiesAxiom"
-#define CLSCBSubObjectPropertyOfAxiom				CBPREFIX "CBSubObjectPropertyOfAxiom"
-#define CLSCBTransitiveObjectPropertyAxiom			CBPREFIX "CBTransitiveObjectPropertyAxiom"
+#define CLSCBObjectPropertyAxiom					CBPREFIX "CbObjectPropertyAxiom"
+#define CLSCBFunctionalObjectPropertyAxiom			CBPREFIX "CbFunctionalObjectPropertyAxiom"
+#define CLSCBInverseFunctionalObjectPropertyAxiom	CBPREFIX "CbInverseFunctionalObjectPropertyAxiom"
+#define CLSCBInverseObjectPropertiesAxiom			CBPREFIX "CbInverseObjectPropertiesAxiom"
+#define CLSCBSubObjectPropertyOfAxiom				CBPREFIX "CbSubObjectPropertyOfAxiom"
+#define CLSCBTransitiveObjectPropertyAxiom			CBPREFIX "CbTransitiveObjectPropertyAxiom"
 
-#define CLSCBClassNode								CBPREFIX "CBClassNode"
-#define CLSCBClassTaxonomyNode						CBPREFIX "CBClassTaxonomyNode"
-#define CLSCBAxiomIterator							CBPREFIX "CBAxiomIterator"
-#define CLSCBException								CBPREFIX "CBException"
+#define CLSCBClassNode								CBPREFIX "CbClassNode"
+#define CLSCBClassTaxonomyNode						CBPREFIX "CbClassTaxonomyNode"
+#define CLSCBAxiomIterator							CBPREFIX "CbAxiomIterator"
+#define CLSCBException								CBPREFIX "CbException"
 
 void throw_exception(JNIEnv *env, const char *function, const char *file, int line);
 
